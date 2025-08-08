@@ -34,14 +34,14 @@ public class SupabaseStorageRepository implements StorageRepository {
 
     private final S3Client s3Client;
 
-    @Value("${SUPABASE_S3_BUCKET}")
+    @Value("${supabase.s3.bucket}")
     private String bucket;
 
     public SupabaseStorageRepository(
-            @Value("${SUPABASE_S3_ACCESS_KEY}") String accessKey,
-            @Value("${SUPABASE_S3_SECRET_KEY}") String secretKey,
-            @Value("${SUPABASE_S3_REGION}") String region,
-            @Value("${SUPABASE_S3_ENDPOINT}") String endpoint
+            @Value("${supabase.s3.access-key}") String accessKey,
+            @Value("${supabase.s3.secret-key}") String secretKey,
+            @Value("${supabase.s3.region}") String region,
+            @Value("${supabase.s3.endpoint}") String endpoint
     ) {
         AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
         this.s3Client = S3Client.builder()
