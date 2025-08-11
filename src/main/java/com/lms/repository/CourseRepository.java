@@ -13,6 +13,7 @@ public interface CourseRepository {
     Optional<Course> findById(int id);
     Course save(Course course);
 
+    
     // Optional<Course> findByIdAndUserId(int courseId, int userId);
     Optional<CourseDetailsDto> findCourseDetailsById(int courseId);
     Optional<CourseDetailsDto> findCourseDetailsByCourseIdAndUserId(int courseId, int userId);

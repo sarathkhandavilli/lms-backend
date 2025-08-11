@@ -5,7 +5,6 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 import com.lms.model.ForgotPassword;
-import com.lms.model.User;
 
 @Repository
 public interface ForgotPasswordRepository {

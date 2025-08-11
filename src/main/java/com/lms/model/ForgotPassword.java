@@ -15,7 +15,7 @@ public class ForgotPassword {
     private int fpid;
 
     private int otp;
-
+    
     private Date expirationTime;
 
     private int userId;

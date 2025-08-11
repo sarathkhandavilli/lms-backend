@@ -25,6 +25,7 @@ public class JdbcCourseRepository implements CourseRepository {
 
     @Override
     public Optional<CourseDetailsDto> findCourseDetailsById(int courseId) {
+        
     String sql = """
         SELECT c.id AS course_id, c.name AS course_name, c.description AS course_description, c.prerequisite, c.author_course_note,
                c.price, c.discount_in_percent, c.type, c.thumbnail,c.mentor_id,

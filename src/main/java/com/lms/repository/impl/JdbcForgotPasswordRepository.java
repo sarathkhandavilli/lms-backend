@@ -7,7 +7,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.lms.model.ForgotPassword;
-import com.lms.model.User;
 import com.lms.repository.ForgotPasswordRepository;
 
 @Repository

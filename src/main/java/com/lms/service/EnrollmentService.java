@@ -44,7 +44,7 @@ public class EnrollmentService {
     UserRepository userRepository;
 
 
-public ResponseEntity<CommonApiResponse> enroll(EnrollmentDto enrollmentDto) {
+    public ResponseEntity<CommonApiResponse> enroll(EnrollmentDto enrollmentDto) {
 
         CommonApiResponse response;
 
