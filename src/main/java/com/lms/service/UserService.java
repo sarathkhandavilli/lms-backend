@@ -183,7 +183,7 @@ public class UserService {
             if (!user.getStatus().equalsIgnoreCase("ACTIVE")) {
                 logger.warn("User is inactive: {}", user.getEmailId());
                 response = new CommonApiResponse(false, "User is inactive", user);
-                return new ResponseEntity<>(response, HttpStatus.OK);
+                return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
             }
 
              

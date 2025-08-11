@@ -1,5 +1,7 @@
 package com.lms.repository.impl;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -34,7 +36,7 @@ public class JdbcMentorDetailRepository implements MentorDetailRepository {
     public MentorDetail findById(int id) {
         String sql = "SELECT * FROM mentor_detail WHERE id = ?";
 
-        return jdbcTemplate.queryForObject(sql, new Object[]{id}, (rs, rowNum) -> {
+        List<MentorDetail> list = jdbcTemplate.query(sql,(rs, rowNum) -> {
             MentorDetail mentorDetail = new MentorDetail();
             mentorDetail.setId(rs.getInt("id"));
             mentorDetail.setAge(rs.getInt("age"));
@@ -43,7 +45,12 @@ public class JdbcMentorDetailRepository implements MentorDetailRepository {
             mentorDetail.setProfession(rs.getString("profession"));
             mentorDetail.setProfilePic(rs.getString("profile_pic"));
             return mentorDetail;
-        });
+        },id);
+
+        if (list.isEmpty()) {
+            return null;
+        }
+        return list.get(0);
     }
 
 }
