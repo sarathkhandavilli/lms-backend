@@ -18,4 +18,6 @@ public interface UserRepository {
     boolean deleteById(int mentorId);
     User update(User mentor);
 
+    void updatePassword(String email, String password);
+
 }

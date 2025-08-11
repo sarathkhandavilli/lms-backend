@@ -84,7 +84,7 @@ public class SecurityConfig {
                 // LEARNER-only endpoints
                 .requestMatchers(HttpMethod.POST, "/enrollment/enroll").hasRole("LEARNER")
                 .requestMatchers(HttpMethod.GET, "/enrollment/fetch/learner-wise").hasRole("LEARNER")
-                .requestMatchers(HttpMethod.GET, "/courses/fetch/course-user-id").hasRole("LEARNER")
+                .requestMatchers(HttpMethod.GET, "/courses/fetch/course-user-id").hasAnyRole("LEARNER","MENTOR")
                 .requestMatchers(HttpMethod.GET, "/courses/fetch/youtube").hasRole("LEARNER")
 
                 // Public endpoints
@@ -97,6 +97,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/courses/fetch/course-id").permitAll()
                 .requestMatchers(HttpMethod.GET, "/courses/fetch/*").permitAll()
                 .requestMatchers(HttpMethod.GET, "/user/fetch/*").permitAll()
+                .requestMatchers(HttpMethod.POST, "/forgotpassword/**").permitAll()
 
                 // CORS preflight
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

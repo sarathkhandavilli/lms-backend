@@ -44,6 +44,7 @@ public class JdbcCourseRepository implements CourseRepository {
 
     CourseDetailsDto courseDetailsDto = new CourseDetailsDto();
     Map<String, CourseSectionDto> sectionMap = new LinkedHashMap<>();
+    Map<String, CourseSectionTopicDto> topicMap = new LinkedHashMap<>();
 
     for (Map<String, Object> row : rows) {
         // Set course-level data only once
@@ -79,6 +80,11 @@ public class JdbcCourseRepository implements CourseRepository {
         }
 
         CourseSectionTopicDto topicDto = new CourseSectionTopicDto();
+
+        if (topicMap.containsKey((String)row.get("topic_no"))) {
+            continue;
+        }
+
         topicDto.setTopicNo((String) row.get("topic_no"));
         topicDto.setName((String) row.get("topic_name"));
         topicDto.setDescription((String) row.get("topic_description"));
@@ -90,6 +96,7 @@ public class JdbcCourseRepository implements CourseRepository {
         }
 
         sectionDto.getCourseSectionTopicDtos().add(topicDto);
+        topicMap.put(topicDto.getTopicNo(),topicDto);
     }
 
     courseDetailsDto.setCourseSectionDtos(new ArrayList<>(sectionMap.values()));
@@ -103,20 +110,21 @@ public class JdbcCourseRepository implements CourseRepository {
             SELECT c.id as course_id, c.mentor_id, c.name AS course_name, c.description AS course_description, c.prerequisite, c.author_course_note,
                 c.price, c.discount_in_percent, c.type, c.thumbnail,
                 cs.id AS section_id, cs.section_no, cs.name AS section_name, cs.description AS section_description,
-                cst.topic_no, cst.name AS topic_name, cst.description AS topic_description, cst.youtube_url
+                cst.id as topic_id, cst.topic_no, cst.name AS topic_name, cst.description AS topic_description, cst.youtube_url
             FROM course c
             LEFT JOIN course_section cs ON cs.course_id = c.id
             LEFT JOIN course_section_topic cst ON cst.section_id = cs.id
             LEFT JOIN enrollment e ON e.course_id = c.id
-            WHERE c.id = ? AND e.learner_id = ?
+            WHERE c.id = ? AND ( e.learner_id = ? or c.mentor_id = ? )
         """;
 
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, courseId, userId);
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, courseId,userId,userId);
 
         if (rows.isEmpty()) return Optional.empty();
 
         CourseDetailsDto courseDetailsDto = new CourseDetailsDto();
         Map<String, CourseSectionDto> sectionMap = new LinkedHashMap<>();
+        Map<String,CourseSectionTopicDto> topicMap = new LinkedHashMap<>();
 
         for (Map<String, Object> row : rows) {
             // Set course info once
@@ -153,6 +161,9 @@ public class JdbcCourseRepository implements CourseRepository {
             }
 
             CourseSectionTopicDto topicDto = new CourseSectionTopicDto();
+            if (topicMap.containsKey((String) row.get("topic_no"))) {
+                continue;
+            }
             topicDto.setTopicNo((String) row.get("topic_no"));
             topicDto.setName((String) row.get("topic_name"));
             topicDto.setDescription((String) row.get("topic_description"));
@@ -165,6 +176,7 @@ public class JdbcCourseRepository implements CourseRepository {
             }
 
             sectionDto.getCourseSectionTopicDtos().add(topicDto);
+            topicMap.put(topicDto.getTopicNo(),topicDto);
         }
 
         courseDetailsDto.setCourseSectionDtos(new ArrayList<>(sectionMap.values()));
@@ -237,11 +249,11 @@ public class JdbcCourseRepository implements CourseRepository {
         }
 
     }
-    @Override
-    public Optional<Course> findByIdAndUserId(int courseId, int userId) {
-        // TODO Auto-generated method stub
-        return Optional.empty();
-    }
+    // @Override
+    // public Optional<Course> findByIdAndUserId(int courseId, int userId) {
+    //     // TODO Auto-generated method stub
+    //     return Optional.empty();
+    // }
     @Override
     public Optional<List<Course>> findByStatus(String status) {
         String sql = "SELECT * FROM course WHERE status = ?";

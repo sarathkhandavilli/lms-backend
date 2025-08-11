@@ -150,4 +150,13 @@ public class JdbcUserRepository implements UserRepository {
     return mentor;
 
     }
+
+    @Override
+    public void updatePassword(String email, String password) {
+
+        String sql = "UPDATE users SET password = ? WHERE email = ?";
+
+        jdbcTemplate.update(sql,password,email);
+        
+    }
 }

@@ -286,6 +286,11 @@ public class UserService {
             }
 
             MentorDetail mentorDetail = mentorDetailRepository.findById(mentor.getMentorDetailId());
+
+            if (mentorDetail == null) {
+                response = new CommonApiResponse(false, "Mentor Details not found", null);
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
             UserDto userDto = UserDto.toDto(mentor);
             userDto.setMentorDetail(mentorDetail);
 

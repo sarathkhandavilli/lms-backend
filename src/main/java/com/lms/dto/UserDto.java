@@ -62,7 +62,8 @@ public class UserDto {
         user.setLastName(userDto.getLastName());
         user.setEmailId(userDto.getEmailId());
         user.setPassword(userDto.getPassword());
-        user.setPhoneNo(getFormattedPhoneNumber(userDto.getPhoneNo()));
+        String formatted = getFormattedPhoneNumber(userDto.getPhoneNo());
+        user.setPhoneNo(formatted);
         user.setRole(userDto.getRole());
         user.setStatus(userDto.getStatus());
         user.setMentorDetailId(userDto.getMentorDetailId());
@@ -81,7 +82,8 @@ public class UserDto {
         userDto.setLastName(user.getLastName());
         userDto.setEmailId(user.getEmailId());
         userDto.setPassword(user.getPassword());
-        userDto.setPhoneNo(getUnformattedPhoneNumber(user.getPhoneNo()));
+        String unformatted = getUnformattedPhoneNumber(user.getPhoneNo());
+        userDto.setPhoneNo(unformatted);
         userDto.setRole(user.getRole());
         userDto.setStatus(user.getStatus());
         userDto.setMentorDetailId(user.getMentorDetailId());

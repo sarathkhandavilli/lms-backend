@@ -8,7 +8,8 @@ DROP TABLE IF EXISTS
     enrollment,
     mentor_detail,
     payment,
-    users 
+    users,
+    forgot_password
 CASCADE;
 
 
@@ -115,5 +116,10 @@ CREATE TABLE enrollment (
     CONSTRAINT enrollment_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES payment(id)
 );
 
-
-
+CREATE TABLE forgot_password (
+    fpid SERIAL PRIMARY KEY,
+    otp INT NOT NULL,
+    expiration_time TIMESTAMP NOT NULL,
+    user_id INT NOT NULL,
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
