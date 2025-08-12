@@ -1,5 +1,6 @@
 package com.lms.repository.impl;
 
+import com.lms.model.RegistrationOtp;
 import com.lms.model.User;
 import com.lms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -158,5 +159,47 @@ public class JdbcUserRepository implements UserRepository {
 
         jdbcTemplate.update(sql,password,email);
         
+    }
+
+    @Override
+    public RegistrationOtp checkOtp(int otp, String email) {
+        String sql = "SELECT * FROM registration_otps WHERE otp = ? AND email = ?";
+
+        try {
+            RegistrationOtp registrationOtp = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+                RegistrationOtp ro = new RegistrationOtp();
+                ro.setId(rs.getInt("id"));
+                ro.setOtp(rs.getInt("otp"));
+                ro.setExpirationTime(rs.getTimestamp("expiration_time"));
+                ro.setEmail(rs.getString("email"));
+                return ro;
+            }, otp, email);
+
+            return registrationOtp;
+
+        } catch (Exception e) {
+            return null ;
+        }
+    }
+
+    @Override
+    public void deleteOtp(int id) {
+
+        String sql = "DELETE FROM registration_otps WHERE id = ?";
+        jdbcTemplate.update(sql,id);
+
+    }
+
+    @Override
+    public void saveRegistrationOtp(RegistrationOtp registrationOtp) {
+        String sql = "INSERT INTO registration_otps (otp, email, expiration_time) VALUES (?, ?, ?)";
+        jdbcTemplate.update(sql,registrationOtp.getOtp(),registrationOtp.getEmail(),registrationOtp.getExpirationTime());
+    }
+
+    @Override
+    public void deletePrevOtpsByMail(String email) {
+
+        String sql = "DELETE FROM registration_otps WHERE email = ?";
+        jdbcTemplate.update(sql, email);
     }
 }

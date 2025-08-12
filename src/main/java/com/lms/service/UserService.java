@@ -93,6 +93,8 @@ public class UserService {
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
 
+            
+
             userDto.setStatus("ACTIVE");
             User user = UserDto.toEntity(userDto);
             user.setPassword(passwordEncoder.encode(userDto.getPassword()));

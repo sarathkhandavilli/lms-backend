@@ -90,6 +90,8 @@ public class SecurityConfig {
                 // Public endpoints
                 .requestMatchers(HttpMethod.POST, "/user/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/user/login").permitAll()
+                .requestMatchers(HttpMethod.POST,"/user/verifymail").permitAll()
+                .requestMatchers(HttpMethod.POST,"/user/verifyotp/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/category/fetch/all").permitAll()
                 .requestMatchers(HttpMethod.GET, "/courses/fetch/status-wise").permitAll()
                 .requestMatchers(HttpMethod.GET, "/courses/fetch/name-wise").permitAll()
@@ -98,6 +100,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/courses/fetch/*").permitAll()
                 .requestMatchers(HttpMethod.GET, "/user/fetch/*").permitAll()
                 .requestMatchers(HttpMethod.POST, "/forgotpassword/**").permitAll()
+
 
                 // CORS preflight
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

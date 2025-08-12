@@ -9,7 +9,8 @@ DROP TABLE IF EXISTS
     mentor_detail,
     payment,
     users,
-    forgot_password
+    forgot_password,
+    registration_otps
 CASCADE;
 
 
@@ -123,3 +124,11 @@ CREATE TABLE forgot_password (
     user_id INT NOT NULL,
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE TABLE registration_otps (
+    id SERIAL PRIMARY KEY,
+    otp INT NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    expiration_time TIMESTAMP NOT NULL
+);
+    

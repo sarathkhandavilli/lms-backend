@@ -1,19 +1,22 @@
 package com.lms.controller;
 
+import com.lms.constants.OtpType;
 import com.lms.dto.CommonApiResponse;
 import com.lms.dto.LoginDto;
 import com.lms.dto.MentorDetailDto;
 import com.lms.dto.UserDto;
+import com.lms.repository.UserRepository;
+import com.lms.service.EmailService;
+import com.lms.service.OtpService;
 import com.lms.service.UserService;
 
 import jakarta.servlet.http.HttpServletResponse;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 
@@ -22,7 +25,30 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class UserController {
 
     @Autowired
+    EmailService emailService;
+
+    @Autowired
     UserService userService;
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    private OtpService otpService;
+
+
+    @PostMapping("/verifymail")
+    public ResponseEntity<CommonApiResponse> verifymail(@RequestParam("email") String email) {
+        return otpService.sendOtp(email, OtpType.REGISTRATION);
+    }
+
+    @PostMapping("/verifyotp/{otp}/{email}")
+    public ResponseEntity<CommonApiResponse> verifyotp(
+            @PathVariable int otp,
+            @PathVariable String email) {
+        return otpService.verifyOtp(otp, email, OtpType.REGISTRATION);
+    }
+
 
     // registers the user (any one can)
     @PostMapping("/register")
