@@ -3,6 +3,7 @@ package com.lms.service;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
+import java.util.TimeZone;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -51,6 +52,8 @@ public class OtpService {
         Date expirationTime = new Date(System.currentTimeMillis() + 3 * 60 * 1000);
 
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("Asia/Kolkata")); // Set your desired time zone
+
         String formattedTime = sdf.format(expirationTime);
 
         MailBody mailBody = MailBody.builder()

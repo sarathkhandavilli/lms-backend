@@ -27,13 +27,14 @@ public class JdbcCourseRepository implements CourseRepository {
     public Optional<CourseDetailsDto> findCourseDetailsById(int courseId) {
         
     String sql = """
-        SELECT c.id AS course_id, c.name AS course_name, c.description AS course_description, c.prerequisite, c.author_course_note,
+        SELECT c.id AS course_id, (m.first_name || ' ' ||  m.last_name ) AS mentor_name, c.name AS course_name, c.description AS course_description, c.prerequisite, c.author_course_note,
                c.price, c.discount_in_percent, c.type, c.thumbnail,c.mentor_id,
                cs.id AS section_id, cs.section_no, cs.name AS section_name, cs.description AS section_description,
                cst.id AS topic_id, cst.topic_no, cst.name AS topic_name, cst.description AS topic_description
         FROM course c
         LEFT JOIN course_section cs ON cs.course_id = c.id
         LEFT JOIN course_section_topic cst ON cst.section_id = cs.id
+        LEFT JOIN users m ON c.mentor_id = m.id
         WHERE c.id = ?
     """;
 
@@ -58,6 +59,7 @@ public class JdbcCourseRepository implements CourseRepository {
             courseDetailsDto.setPrice(((BigDecimal) row.get("price")).doubleValue());
             courseDetailsDto.setDiscountInPercent(((Number) row.get("discount_in_percent")).doubleValue());
             courseDetailsDto.setType((String) row.get("type"));
+            courseDetailsDto.setMentorName((String) row.get("mentor_name"));
             courseDetailsDto.setThumbnail((String) row.get("thumbnail"));
             courseDetailsDto.setMentorId((Integer) row.get("mentor_id"));
         }
@@ -108,7 +110,7 @@ public class JdbcCourseRepository implements CourseRepository {
 
     public Optional<CourseDetailsDto> findCourseDetailsByCourseIdAndUserId(int courseId, int userId) {
         String sql = """
-            SELECT c.id as course_id, c.mentor_id, c.name AS course_name, c.description AS course_description, c.prerequisite, c.author_course_note,
+            SELECT c.id as course_id, c.mentor_id,(m.first_name || ' ' ||  m.last_name ) AS mentor_name, c.name AS course_name, c.description AS course_description, c.prerequisite, c.author_course_note,
                 c.price, c.discount_in_percent, c.type, c.thumbnail,
                 cs.id AS section_id, cs.section_no, cs.name AS section_name, cs.description AS section_description,
                 cst.id as topic_id, cst.topic_no, cst.name AS topic_name, cst.description AS topic_description, cst.youtube_url
@@ -116,6 +118,7 @@ public class JdbcCourseRepository implements CourseRepository {
             LEFT JOIN course_section cs ON cs.course_id = c.id
             LEFT JOIN course_section_topic cst ON cst.section_id = cs.id
             LEFT JOIN enrollment e ON e.course_id = c.id
+            LEFT JOIN users m ON c.mentor_id = m.id
             WHERE c.id = ? AND ( e.learner_id = ? or c.mentor_id = ? )
         """;
 
@@ -140,6 +143,7 @@ public class JdbcCourseRepository implements CourseRepository {
                 courseDetailsDto.setType((String) row.get("type"));
                 courseDetailsDto.setThumbnail((String) row.get("thumbnail"));
                 courseDetailsDto.setMentorId((Integer) row.get("mentor_id"));
+                courseDetailsDto.setMentorName((String) row.get("mentor_name"));
 
             }
 

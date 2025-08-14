@@ -8,8 +8,9 @@ import lombok.Data;
 public class CourseDetailsDto {
 
     private int courseId;
-    private int mentorId;
     private String name;
+    private int mentorId;
+    private String mentorName;
     private String description;
     private String prerequisite;
     private String authorCourseNote;
