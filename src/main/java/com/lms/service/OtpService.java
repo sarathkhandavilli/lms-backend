@@ -63,10 +63,14 @@ public class OtpService {
             .subject("OTP for " + type.name().replace("_", " ").toLowerCase())
             .build();
 
-        emailService.sendSimpleMessage(mailBody);
 
         if (type == OtpType.REGISTRATION) {
             userRepository.deletePrevOtpsByMail(email);
+            User user = userRepository.findUserByMail(email);
+            if (user != null) {
+                response = new CommonApiResponse(false, "User with this email is already exists!", user);
+                return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+            }
             RegistrationOtp ro = RegistrationOtp.builder()
                 .otp(otp)
                 .email(email)
@@ -83,6 +87,8 @@ public class OtpService {
             forgotPasswordRepository.save(fp);
         }
 
+        emailService.sendSimpleMessage(mailBody);
+
         response = new CommonApiResponse(true, "OTP sent successfully!", null);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -92,9 +98,11 @@ public class OtpService {
 
         if (type == OtpType.REGISTRATION) {
             RegistrationOtp ro = userRepository.checkOtp(otp, email);
+            System.out.println("Checking otp for email "+email);
             if (ro == null) {
-                return new ResponseEntity<>(new CommonApiResponse(false, "Invalid OTP", null), HttpStatus.UNAUTHORIZED);
+                return new ResponseEntity<>(new CommonApiResponse(false, "Invalid OTP", ro), HttpStatus.UNAUTHORIZED);
             }
+            System.out.println("Found otp = "+ro.getOtp());
             if (ro.getExpirationTime().before(new Date())) {
                 userRepository.deleteOtp(ro.getId());
                 return new ResponseEntity<>(new CommonApiResponse(false, "OTP expired", null), HttpStatus.EXPECTATION_FAILED);
@@ -111,6 +119,7 @@ public class OtpService {
                 return new ResponseEntity<>(new CommonApiResponse(false, "OTP expired", null), HttpStatus.EXPECTATION_FAILED);
             }
         }
+
 
         return new ResponseEntity<>(new CommonApiResponse(true, "OTP verified!", null), HttpStatus.OK);
     }
