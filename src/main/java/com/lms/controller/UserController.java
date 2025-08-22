@@ -13,7 +13,6 @@ import com.lms.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,16 +34,7 @@ public class UserController {
 
     @Autowired
     private OtpService otpService;
-
-
-    @GetMapping("/health")
-    public ResponseEntity<CommonApiResponse> health() {
-        CommonApiResponse response;
-        response = new CommonApiResponse(true, "UP", null);
-        return new ResponseEntity<>(response,HttpStatus.OK);
-    }
-
-
+    
     @PostMapping("/verifymail")
     public ResponseEntity<CommonApiResponse> verifymail(@RequestParam("email") String email) {
         return otpService.sendOtp(email, OtpType.REGISTRATION);
