@@ -88,7 +88,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/courses/fetch/youtube").hasRole("LEARNER")
 
                 // Public endpoints
-                .requestMatchers(HttpMethod.POST, "/user/health").permitAll()
+                .requestMatchers(HttpMethod.GET, "/health").permitAll()
+                .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
                 .requestMatchers(HttpMethod.POST, "/user/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/user/login").permitAll()
                 .requestMatchers(HttpMethod.POST,"/user/verifymail").permitAll()
