@@ -5,9 +5,11 @@ import com.lms.service.CourseService;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.lms.dto.CommonApiResponse;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -53,7 +55,9 @@ public class CourseController {
     // fetches all the active courses in the webpage(home page) (any one)
     @GetMapping("fetch/status-wise")
     public ResponseEntity<CommonApiResponse> fetchCourseByStatus(@RequestParam("status") String status) {
-        return courseService.fetchCourseByStatus(status);
+        List<CourseDto> courseDtos = courseService.fetchCourseByStatus(status);
+        CommonApiResponse response = new CommonApiResponse(true, "Course fetched successfully", courseDtos);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // fetches all the courses that a mentor created (to see in my courses of mentor)

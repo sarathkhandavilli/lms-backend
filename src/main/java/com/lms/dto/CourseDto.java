@@ -5,10 +5,11 @@ import com.lms.model.Course;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class CourseDto {
+public class CourseDto implements Serializable {
      
     @JsonProperty(access=JsonProperty.Access.READ_ONLY)
     private int id;

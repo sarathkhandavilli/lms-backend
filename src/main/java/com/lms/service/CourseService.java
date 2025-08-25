@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -195,33 +196,19 @@ public class CourseService {
         }
     }
 
-    public ResponseEntity<CommonApiResponse> fetchCourseByStatus(String status) {
-        CommonApiResponse response;
+    @Cacheable(value = "courses", key = "#status")
+    public List<CourseDto> fetchCourseByStatus(String status) {
 
-        logger.info("Fetching courses with status: {}", status);
+        List<Course> courses = courseRepository.findByStatus(status.toUpperCase())
+                .orElseThrow(() -> new ResourceNotFoundException("Course with status " + status + " not found"));
 
-        try {
-            List<Course> courses = courseRepository.findByStatus(status.toUpperCase())
-                    .orElseThrow(() -> new ResourceNotFoundException("Course with status " + status + " not found"));
-
-            List<CourseDto> courseDtos = courses.stream()
-                    .map(CourseDto::toDto)
-                    .collect(Collectors.toList());
-
-            logger.info("{} Courses fetched successfully with status: {}", courseDtos.size(),status);
-            response = new CommonApiResponse(true, "Course fetched successfully", courseDtos);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-
-        } catch (ResourceNotFoundException e) {
-            logger.error("Error fetching courses with status {}: {}", status, e.getMessage());
-            response = new CommonApiResponse(false, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            logger.error("Unexpected error while fetching courses with status {}: {}", status, e.getMessage());
-            response = new CommonApiResponse(false, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return courses.stream()
+                .map(CourseDto::toDto)
+                .collect(Collectors.toList());
     }
+
+    
+
 
     public ResponseEntity<CommonApiResponse> fetchCourseByMentor(int mentorId, String status) {
         CommonApiResponse response;
