@@ -10,6 +10,7 @@ import com.lms.repository.CourseRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -136,34 +137,25 @@ public class CategoryService {
         }
     }
 
-    public ResponseEntity<CommonApiResponse> getAllCategories(String status) {
+    @Cacheable(value = "categories", key = "#status")
+    public List<CategoryDto> getAllCategories(String status) {
         CommonApiResponse response;
 
-        logger.info("Fetching categories with status: {}", status);
+        logger.info("From DB Fetching categories with status: {}", status);
 
-        status = status.toUpperCase();
+            status = status.toUpperCase();
 
-        try {
             List<Category> categories = categoryRepository.findAll(status);
 
             if (categories.isEmpty()) {
-                response = new CommonApiResponse(false, "Categories not found", null);
-                logger.warn("No categories found with status: {}", status);
-                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+                return null;
             }
 
             List<CategoryDto> categoryDtos = categories.stream()
                     .map(CategoryDto::toDto)
                     .collect(Collectors.toList());
 
-            response = new CommonApiResponse(true, "Categories fetched successfully", categoryDtos);
-            logger.info("Successfully fetched {} categories with status '{}'", categoryDtos.size(), status);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-
-        } catch (Exception e) {
-            logger.error("Error fetching categories with status '{}': {}", status, e.getMessage());
-            response = new CommonApiResponse(false, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+            return categoryDtos;
+            
     }
 }

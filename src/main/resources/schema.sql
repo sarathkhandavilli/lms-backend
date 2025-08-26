@@ -1,5 +1,3 @@
-
-
 DROP TABLE IF EXISTS 
     category,
     course,
@@ -12,7 +10,6 @@ DROP TABLE IF EXISTS
     forgot_password,
     registration_otps
 CASCADE;
-
 
 -- 1. Create mentor_detail table first (because it is referenced in users)
 CREATE TABLE IF NOT EXISTS mentor_detail (
@@ -36,7 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
     status VARCHAR(255),
     mentor_detail_id INTEGER,
     amount NUMERIC(38, 2) DEFAULT 0,
-    CONSTRAINT users_mentor_detail_id_fkey FOREIGN KEY (mentor_detail_id) REFERENCES mentor_detail(id)
+    CONSTRAINT users_mentor_detail_id_fkey FOREIGN KEY (mentor_detail_id) REFERENCES mentor_detail(id) ON DELETE CASCADE
 );
 
 -- 3. Create category table (independent, no foreign keys)
@@ -62,8 +59,8 @@ CREATE TABLE IF NOT EXISTS course (
     status VARCHAR(255),
     category_id INTEGER,
     mentor_id INTEGER,
-    CONSTRAINT course_category_id_fkey FOREIGN KEY (category_id) REFERENCES category(id),
-    CONSTRAINT course_mentor_id_fkey FOREIGN KEY (mentor_id) REFERENCES users(id)
+    CONSTRAINT course_category_id_fkey FOREIGN KEY (category_id) REFERENCES category(id) ON DELETE CASCADE,
+    CONSTRAINT course_mentor_id_fkey FOREIGN KEY (mentor_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- 5. Create course_section table (depends on course)
@@ -73,7 +70,7 @@ CREATE TABLE IF NOT EXISTS course_section (
     name VARCHAR(255),
     description VARCHAR(255),
     course_id INTEGER,
-    CONSTRAINT course_section_course_id_fkey FOREIGN KEY (course_id) REFERENCES course(id)
+    CONSTRAINT course_section_course_id_fkey FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE
 );
 
 -- 6. Create course_section_topic table (depends on course_section)
@@ -84,7 +81,7 @@ CREATE TABLE IF NOT EXISTS course_section_topic (
     description VARCHAR(255),
     youtube_url VARCHAR(255),
     section_id INTEGER,
-    CONSTRAINT course_section_topic_section_id_fkey FOREIGN KEY (section_id) REFERENCES course_section(id)
+    CONSTRAINT course_section_topic_section_id_fkey FOREIGN KEY (section_id) REFERENCES course_section(id) ON DELETE CASCADE
 );
 
 -- 7. Create payment table (depends on users)
@@ -98,7 +95,7 @@ CREATE TABLE IF NOT EXISTS payment (
     name_on_card VARCHAR(255),
     payment_id VARCHAR(255),
     learner_id INTEGER,
-    CONSTRAINT payment_learner_id_fkey FOREIGN KEY (learner_id) REFERENCES users(id)
+    CONSTRAINT payment_learner_id_fkey FOREIGN KEY (learner_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- 8. Create enrollment table (depends on course and users)
@@ -112,9 +109,9 @@ CREATE TABLE enrollment (
     learner_id INTEGER,
     payment_id INTEGER UNIQUE,
 
-    CONSTRAINT enrollment_course_id_fkey FOREIGN KEY (course_id) REFERENCES course(id),
-    CONSTRAINT enrollment_learner_id_fkey FOREIGN KEY (learner_id) REFERENCES users(id),
-    CONSTRAINT enrollment_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES payment(id)
+    CONSTRAINT enrollment_course_id_fkey FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE,
+    CONSTRAINT enrollment_learner_id_fkey FOREIGN KEY (learner_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT enrollment_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES payment(id) ON DELETE CASCADE
 );
 
 CREATE TABLE forgot_password (
@@ -131,4 +128,3 @@ CREATE TABLE registration_otps (
     email VARCHAR(255) NOT NULL,
     expiration_time TIMESTAMP NOT NULL
 );
-    

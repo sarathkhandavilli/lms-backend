@@ -4,17 +4,22 @@ import com.lms.dto.*;
 import com.lms.exception.ResourceNotFoundException;
 import com.lms.model.*;
 import com.lms.repository.*;
-import jakarta.servlet.ServletOutputStream;
+// import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.FileCopyUtils;
+// import org.springframework.transaction.annotation.Transactional;
+// import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -26,6 +31,9 @@ import java.util.stream.Collectors;
 public class CourseService {
 
     private static final Logger logger = LoggerFactory.getLogger(CourseService.class);
+
+    @Autowired
+    private CacheManager cacheManager;
 
     @Autowired 
     private UserRepository userRepository;
@@ -45,12 +53,15 @@ public class CourseService {
     @Autowired
     private StorageRepository storageRepository;
 
-    public ResponseEntity<CommonApiResponse> addCourse(CourseDto courseDto) {
+    @Caching( evict = {
+        @CacheEvict(value = "courses", allEntries = true),
+        @CacheEvict(value = "mentorDashboard", key = "#courseDto.mentorId" )
+    })
+    public CourseDto addCourse(CourseDto courseDto) throws IOException {
         CommonApiResponse response;
 
         logger.info("Attempting to add course with name: {}", courseDto.getName());
 
-        try {
             User mentor = userRepository.findById(courseDto.getMentorId())
                     .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -68,6 +79,13 @@ public class CourseService {
             if (courseThumbnail != null) {
                 String courseThumbnailName = storageRepository.store(courseDto.getThumbnail());
                 course.setThumbnailName(courseThumbnailName);
+
+                byte[] imageBytes = courseThumbnail.getBytes();
+                Cache cache = cacheManager.getCache("courseImages");
+                if (cache != null) {
+                    cache.put(courseThumbnailName,imageBytes);
+                }
+                
                 logger.info("Thumbnail for course '{}' uploaded successfully", courseDto.getName());
             }
 
@@ -76,19 +94,9 @@ public class CourseService {
             course.setStatus("ACTIVE");
 
             CourseDto created = CourseDto.toDto(courseRepository.save(course));
-            response = new CommonApiResponse(true, "Course created successfully", created);
-            logger.info("Course with name '{}' created successfully", courseDto.getName());
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
 
-        } catch (ResourceNotFoundException e) {
-            logger.error("Error creating course: {}", e.getMessage());
-            response = new CommonApiResponse(false, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            logger.error("Error creating course: {}", e.getMessage());
-            response = new CommonApiResponse(false, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+            return created;
+            
     }
 
     public ResponseEntity<CommonApiResponse> addCourseSection(CourseSectionDto dto) {
@@ -311,7 +319,8 @@ public class CourseService {
         }
     }
 
-    public ResponseEntity<CommonApiResponse> deleteCourse(int courseId,int mentorId) {
+    @CacheEvict(value = "mentorDashboard", key = "#mentorId" )
+    public boolean deleteCourse(int courseId,int mentorId) {
 
         CommonApiResponse response;
 
@@ -321,12 +330,10 @@ public class CourseService {
 
         if (isDeleted) {
             logger.info("Course with ID: {} deleted successfully", courseId);
-            response = new CommonApiResponse(true, "Course deleted successfully", null);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            return true;
         } else {
             logger.warn("Course with ID: {} not found for deletion", courseId);
-            response = new CommonApiResponse(false, "Course not found", null);
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            return false ;
         }
     }
 
@@ -355,13 +362,15 @@ public class CourseService {
         }
     }
 
-    public ResponseEntity<CommonApiResponse> fetchMentorDashboardData(int mentorId) {
+    @Cacheable(value = "mentorDashboard", key = "#mentorId")
+    public MentorDashBoardDto fetchMentorDashboardData(int mentorId) {
 
         CommonApiResponse response;
 
-        logger.info("Fetching mentor dashboard data for mentor ID: {}", mentorId);
+        logger.info("From DB: Fetching mentor dashboard data for mentor ID: {}", mentorId);
 
-        try {
+ 
+
             User mentor = userRepository.findById(mentorId).orElseThrow( () -> new ResourceNotFoundException("User Not Found"));
 
             if (!mentor.getRole().equals("MENTOR")) {
@@ -376,37 +385,29 @@ public class CourseService {
             dto.setTotalCoursePurchases(courseRepository.findCountPurchasedByMentor(mentorId));
             dto.setTotalSale(mentor.getAmount());
 
-            logger.info("Mentor dashboard data fetched successfully for mentor ID: {}", mentorId);
-            response = new CommonApiResponse(true, "Mentor dashboard data fetched successfully", dto);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-
-        } catch (ResourceNotFoundException e) {
-            logger.error("Error fetching mentor dashboard data for mentor ID {}: {}", mentorId, e.getMessage());
-            response = new CommonApiResponse(false, e.getMessage(), mentorId);
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        } catch(Exception e) {
-            logger.error("Unexpected error while fetching mentor dashboard data for mentor ID {}: {}", mentorId, e.getMessage());
-            response = new CommonApiResponse(false, e.getMessage(), mentorId);
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+            return dto;
+            
     }
 
-    public void fetchCourseImage(String thumbnailName, HttpServletResponse resp) {
+    @Cacheable(value = "courseImages", key = "#thumbnailName")
+    public byte[] fetchCourseImage(String thumbnailName, HttpServletResponse resp) {
 
-        logger.info("Attempting to fetch course image for thumbnail: {}", thumbnailName);
+        logger.info("FROM DB : Attempting to fetch course image for thumbnail: {} ", thumbnailName);
 
         Resource resource = storageRepository.load(thumbnailName);
 
         if (resource != null) {
             try (InputStream in = resource.getInputStream()) {
-                ServletOutputStream out = resp.getOutputStream();
-                FileCopyUtils.copy(in, out);
-                logger.info("Course image for thumbnail {} fetched successfully", thumbnailName);
+                 byte[] imageBytes = in.readAllBytes();
+                logger.info("Course image for thumbnail {} cached successfully", thumbnailName);
+                return imageBytes;
             } catch (IOException e) {
                 logger.error("Error while fetching course image for thumbnail {}: {}", thumbnailName, e.getMessage());
+                return null;
             }
         } else {
             logger.warn("No course image found for thumbnail: {}", thumbnailName);
+            return null;
         }
     }
 }

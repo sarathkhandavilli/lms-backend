@@ -1,11 +1,13 @@
 package com.lms.dto;
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.lms.model.Category;
 import lombok.Data;
 
 @Data
-public class CategoryDto {
+public class CategoryDto implements Serializable{
 
     @JsonProperty(access=JsonProperty.Access.READ_ONLY)
     private int id;
