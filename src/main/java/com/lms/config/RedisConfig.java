@@ -29,15 +29,15 @@ public class RedisConfig {
         return template;
     }
 
-    @Bean
-    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-        RedisCacheConfiguration cacheConfig = RedisCacheConfiguration
-                .defaultCacheConfig()
-                .entryTtl(Duration.ofHours(1))
-                .disableCachingNullValues();
+    // @Bean
+    // public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+    //     RedisCacheConfiguration cacheConfig = RedisCacheConfiguration
+    //             .defaultCacheConfig()
+    //             .entryTtl(Duration.ofHours(1))
+    //             .disableCachingNullValues();
 
-        return RedisCacheManager.builder(connectionFactory)
-                .cacheDefaults(cacheConfig)
-                .build();
-    }
+    //     return RedisCacheManager.builder(connectionFactory)
+    //             .cacheDefaults(cacheConfig)
+    //             .build();
+    // }
 }
