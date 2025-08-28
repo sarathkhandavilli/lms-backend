@@ -23,11 +23,14 @@ import com.lms.exception.ResourceNotFoundException;
 import com.lms.model.Course;
 import com.lms.model.Enrollment;
 import com.lms.model.Payment;
-import com.lms.model.User;
+import com.lms.model.User; 
 import com.lms.repository.CourseRepository;
 import com.lms.repository.EnrollmentRepository;
 import com.lms.repository.PaymentRepository;
 import com.lms.repository.UserRepository;
+
+import java.time.Instant;
+import java.time.ZoneId;
 
 @Service
 public class EnrollmentService {
@@ -105,7 +108,7 @@ public class EnrollmentService {
 
             Enrollment enrollment = new Enrollment();
             enrollment.setEnrollId(generatedEnrollmentId);
-            enrollment.setEnrollTime(LocalDateTime.now().toString());
+            enrollment.setEnrollTime(Instant.now().toString());
             enrollment.setStatus("ENROLLED");
             enrollment.setAmount(enrollmentDto.getAmount());
             enrollment.setCourseId(course.getId());
@@ -161,14 +164,14 @@ public class EnrollmentService {
     }
 
     @Cacheable(value = "enrollmentsByLearner",key = "#learnerId")
-    public List<EnrollmentInfoLearnerDto> fetchAllEnrollmentsByLearner(int learnerId) {
+    public List<EnrollmentInfoLearnerDto> fetchAllEnrollmentsByLearner(int learnerId,String userTimeZone) {
 
         CommonApiResponse response;
 
         try {
             logger.info("Fetching all enrollments for learner ID: {}", learnerId);
 
-            List<EnrollmentInfoLearnerDto> enrollmentInfoLearnerDtos = enrollmentRepository.findAllByLearnerId(learnerId);
+            List<EnrollmentInfoLearnerDto> enrollmentInfoLearnerDtos = enrollmentRepository.findAllByLearnerId(learnerId,userTimeZone);
 
             if (enrollmentInfoLearnerDtos.isEmpty()) {
                 logger.warn("No enrollments found for learner ID: {}", learnerId);
@@ -184,7 +187,8 @@ public class EnrollmentService {
 
 
     @Cacheable(value = "enrollmentsForMentor")
-    public List<EnrollmentInfoMentorDto> fetchAllEnrollmentsForMentor(int mentorId) {
+    public List<EnrollmentInfoMentorDto> fetchAllEnrollmentsForMentor(int mentorId,String userTimeZone) {
+
 
         CommonApiResponse response;
 
@@ -194,7 +198,7 @@ public class EnrollmentService {
             User mentor = userRepository.findById(mentorId)
                     .orElseThrow(() -> new ResourceNotFoundException("Mentor not found"));
 
-            List<EnrollmentInfoMentorDto> enrollmentInfoMentorDtos = enrollmentRepository.findAllEnrollmentsForMentor(mentorId);
+            List<EnrollmentInfoMentorDto> enrollmentInfoMentorDtos = enrollmentRepository.findAllEnrollmentsForMentor(mentorId,userTimeZone);
 
             if (enrollmentInfoMentorDtos.isEmpty()) {
                 logger.warn("No enrollments found for mentor ID: {}", mentorId);

@@ -1,5 +1,7 @@
 package com.lms.repository.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -10,6 +12,13 @@ import com.lms.dto.EnrollmentInfoMentorDto;
 import com.lms.model.Enrollment;
 import com.lms.repository.EnrollmentRepository;
 
+import java.security.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Repository
@@ -72,7 +81,7 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository{
             return enrollmentInfoDtos;
     }
 
-    public List<EnrollmentInfoLearnerDto> findAllByLearnerId(int learnerId) {
+    public List<EnrollmentInfoLearnerDto> findAllByLearnerId(int learnerId,String userTimeZone) {
 
         String sql = """
                     SELECT
@@ -94,7 +103,27 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository{
             dto.setAmountPaid(rs.getDouble("amount_paid"));
             dto.setPaymentId(rs.getString("payment_id"));
             dto.setEnrollmentId(rs.getString("enrollment_id"));
-            dto.setEnrollmentTime(rs.getString("enrollment_time"));
+
+            String utcTimeString = rs.getString("enrollment_time");
+
+            logger.info("enrollment time before changing "+utcTimeString+" "+userTimeZone);
+
+
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.n");
+
+            LocalDateTime localDateTime = LocalDateTime.parse(utcTimeString, dateTimeFormatter);
+
+            Instant utcInstant = localDateTime.toInstant(ZoneOffset.UTC);
+
+            ZoneId userZone = ZoneId.of(userTimeZone);
+
+            ZonedDateTime userDateTime = utcInstant.atZone(userZone);
+
+            String formattedTime = userDateTime.format(DateTimeFormatter.ofPattern("dd MMM yyyy hh:mm a z"));
+
+            logger.info("enrollment time after changing "+formattedTime);
+
+            dto.setEnrollmentTime(formattedTime);
             dto.setCourseId(rs.getInt("course_id"));
             return dto;
         },learnerId);
@@ -115,7 +144,10 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository{
         return count != null && count > 0;
     }
 
-    public List<EnrollmentInfoMentorDto> findAllEnrollmentsForMentor(int mentorId) {
+    private static final Logger logger = LoggerFactory.getLogger(JdbcEnrollmentRepository.class);
+
+    public List<EnrollmentInfoMentorDto> findAllEnrollmentsForMentor(int mentorId,String userTimeZone) {
+
 
         String sql = """
                 SELECT 
@@ -134,7 +166,27 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository{
             EnrollmentInfoMentorDto enrollmentInfoMentorDto = new EnrollmentInfoMentorDto();
             enrollmentInfoMentorDto.setLearnerName(rs.getString("full_name"));
             enrollmentInfoMentorDto.setAmount(rs.getDouble("amount"));
-            enrollmentInfoMentorDto.setEnrolledTime(rs.getString("enrollment_time"));
+
+            String utcTimeString = rs.getString("enrollment_time");
+
+            logger.info("enrollment time before changing "+utcTimeString+" "+userTimeZone);
+
+
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.n");
+
+            LocalDateTime localDateTime = LocalDateTime.parse(utcTimeString, dateTimeFormatter);
+
+            Instant utcInstant = localDateTime.toInstant(ZoneOffset.UTC);
+
+            ZoneId userZone = ZoneId.of(userTimeZone);
+
+            ZonedDateTime userDateTime = utcInstant.atZone(userZone);
+
+            String formattedTime = userDateTime.format(DateTimeFormatter.ofPattern("dd MMM yyyy hh:mm a z"));
+
+            logger.info("enrollment time after changing "+formattedTime);
+
+            enrollmentInfoMentorDto.setEnrolledTime(formattedTime);
             enrollmentInfoMentorDto.setCourseName(rs.getString("course_name"));
             return enrollmentInfoMentorDto;
         },mentorId,"ACTIVE");

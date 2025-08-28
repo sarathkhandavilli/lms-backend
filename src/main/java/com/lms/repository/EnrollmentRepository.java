@@ -16,10 +16,10 @@ public interface EnrollmentRepository {
 
     List<EnrollmentInfoDto> findAll();
 
-    List<EnrollmentInfoLearnerDto> findAllByLearnerId(int learnerId);
+    List<EnrollmentInfoLearnerDto> findAllByLearnerId(int learnerId,String userTimeZone);
 
     boolean checkEnrollment(int courseId, int userId);
 
-    List<EnrollmentInfoMentorDto> findAllEnrollmentsForMentor(int mentorId);
+    List<EnrollmentInfoMentorDto> findAllEnrollmentsForMentor(int mentorId,String userTimeZone);
     
 }

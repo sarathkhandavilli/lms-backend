@@ -52,7 +52,7 @@ public class OtpService {
         Date expirationTime = new Date(System.currentTimeMillis() + 3 * 60 * 1000);
 
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-        sdf.setTimeZone(TimeZone.getTimeZone("Asia/Kolkata")); // Set your desired time zone
+        sdf.setTimeZone(TimeZone.getTimeZone("Asia/Kolkata"));
 
         String formattedTime = sdf.format(expirationTime);
 

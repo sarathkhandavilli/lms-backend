@@ -58,10 +58,10 @@ public class EnrollmentController {
 
     // fetches all enrolled courses for particular learner (learner can see my courses)
     @GetMapping("fetch/learner-wise")
-    public ResponseEntity<CommonApiResponse> fetchAllEnrollmentsByLearner(@RequestParam("learnerId") int learnerId) {
+    public ResponseEntity<CommonApiResponse> fetchAllEnrollmentsByLearner(@RequestParam("learnerId") int learnerId, @RequestParam("userTimeZone") String userTimeZone) {
         CommonApiResponse response;
 
-        List<EnrollmentInfoLearnerDto> enrollmentInfoLearnerDtos = enrollmentService.fetchAllEnrollmentsByLearner(learnerId);
+        List<EnrollmentInfoLearnerDto> enrollmentInfoLearnerDtos = enrollmentService.fetchAllEnrollmentsByLearner(learnerId,userTimeZone);
 
         if (enrollmentInfoLearnerDtos.isEmpty()) {
             response = new CommonApiResponse(false, "No enrollments for user", enrollmentInfoLearnerDtos);
@@ -74,11 +74,11 @@ public class EnrollmentController {
 
     // fetches all enrolled coureses for particular mentor (mentor can see enrolled courses)
     @GetMapping("fetch/mentor-wise")
-    public ResponseEntity<CommonApiResponse> fetchAllEnrollmentForMentor(@RequestParam("mentorId") int mentorId) {
+    public ResponseEntity<CommonApiResponse> fetchAllEnrollmentForMentor(@RequestParam("mentorId") int mentorId, @RequestParam("userTimeZone") String userTimeZone) {
 
         CommonApiResponse response;
 
-        List<EnrollmentInfoMentorDto> enrollmentInfoMentorDtos =  enrollmentService.fetchAllEnrollmentsForMentor(mentorId);
+        List<EnrollmentInfoMentorDto> enrollmentInfoMentorDtos =  enrollmentService.fetchAllEnrollmentsForMentor(mentorId,userTimeZone);
 
         if (enrollmentInfoMentorDtos == null) {
             response = new CommonApiResponse(true, "INTERNAL_SERVER_ERROR", null);
