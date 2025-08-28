@@ -121,6 +121,7 @@ public class UserService {
         }
     }
 
+    @CacheEvict(value = "MentorWiseDetails", key = "#mentorDetailDto.mentorId")
     public ResponseEntity<CommonApiResponse> addMentorDetail(MentorDetailDto mentorDetailDto) {
         CommonApiResponse response;
 
@@ -269,14 +270,14 @@ public class UserService {
     }
 
 
-    public ResponseEntity<CommonApiResponse> getMentorById(int mentorId) {
+    @Cacheable(value = "MentorWiseDetails",key = "#mentorId")
+    public UserDto getMentorById(int mentorId) {
         CommonApiResponse response;
 
          
         if (mentorId == 0) {
             logger.warn("Missing mentorId in request.");
-            response = new CommonApiResponse(false, "Missing input", mentorId);
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            return null;
         }
 
         try {
@@ -285,31 +286,34 @@ public class UserService {
 
             if (!"MENTOR".equalsIgnoreCase(mentor.getRole())) {
                 logger.warn("User with id {} is not a mentor.", mentorId);
-                response = new CommonApiResponse(false, "Mentor not found", null);
-                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                // response = new CommonApiResponse(false, "Mentor not found", null);
+                // return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                return null;
             }
 
             MentorDetail mentorDetail = mentorDetailRepository.findById(mentor.getMentorDetailId());
 
             if (mentorDetail == null) {
-                response = new CommonApiResponse(false, "Mentor Details not found", null);
-                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+                // response = new CommonApiResponse(false, "Mentor Details not found", null);
+                // return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+                return null;
             }
             UserDto userDto = UserDto.toDto(mentor);
             userDto.setMentorDetail(mentorDetail);
 
             logger.info("Fetched mentor details for mentorId: {}", mentorId);
-            response = new CommonApiResponse(true, "Fetched Mentor Profile", userDto);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            return userDto;
 
         } catch (ResourceNotFoundException e) {
             logger.error("Mentor not found for mentorId: {}", mentorId);
-            response = new CommonApiResponse(false, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            // response = new CommonApiResponse(false, e.getMessage(), null);
+            // return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            return null;
         } catch (Exception e) {
             logger.error("Error while fetching mentor details: {}", e.getMessage());
-            response = new CommonApiResponse(false, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            // response = new CommonApiResponse(false, e.getMessage(), null);
+            // return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return null;
         }
     }
 

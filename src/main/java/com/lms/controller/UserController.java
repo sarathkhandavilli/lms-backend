@@ -97,7 +97,17 @@ public class UserController {
     // fetches particular mentor profile
     @GetMapping("/fetch/mentor-id")
     public ResponseEntity<CommonApiResponse> getMentor(@RequestParam("mentorId") int mentorId) {
-        return userService.getMentorById(mentorId);
+        CommonApiResponse response;
+
+        UserDto userDto = userService.getMentorById(mentorId);
+
+        if (userDto == null) {
+            response = new CommonApiResponse(false, "Missing input or mentor not found or mentor details not found or INTERNAL_SERVER_ERROR", mentorId);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+
+        response = new CommonApiResponse(true, "Fetched Mentor Profile", userDto);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // deactivates mentor (admin can)
