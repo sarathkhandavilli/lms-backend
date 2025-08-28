@@ -49,7 +49,9 @@ public class EnrollmentService {
     @Caching(evict = {
         @CacheEvict(value = "allenrollments", allEntries = true),
         @CacheEvict(value = "enrollmentsByLearner", key = "#enrollmentDto.learnerId"),
-        @CacheEvict(value = "enrollmentsForMentor", key = "#enrollmentDto.mentorId")
+        @CacheEvict(value = "enrollmentsForMentor", key = "#enrollmentDto.mentorId"),
+        @CacheEvict(value = "courseDetailsOverviewByUser", key = "#enrollmentDto.courseId + '-' + #enrollmentDto.learnerId")
+
     })
     public ResponseEntity<CommonApiResponse> enroll(EnrollmentDto enrollmentDto) {
 
