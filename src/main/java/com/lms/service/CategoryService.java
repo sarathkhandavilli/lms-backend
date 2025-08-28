@@ -10,7 +10,9 @@ import com.lms.repository.CourseRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,9 @@ public class CategoryService {
     @Autowired
     private CourseRepository courseRepository;
 
+    @Caching( evict = {
+        @CacheEvict(value = "categories", allEntries = true),
+    })
     public ResponseEntity<CommonApiResponse> addCategory(CategoryDto categoryDto) {
         CommonApiResponse response;
 
@@ -56,6 +61,10 @@ public class CategoryService {
         }
     }
 
+    @Caching( evict = {
+        @CacheEvict(value = "categories", allEntries = true),
+        @CacheEvict(value = "categoryWiseCourses", key = "#updatecategoryDto.id")
+    })
     public ResponseEntity<CommonApiResponse> updateCategory(UpdateCategoryDto updatecategoryDto) {
         CommonApiResponse response;
 
@@ -92,6 +101,10 @@ public class CategoryService {
         }
     }
 
+    @Caching( evict = {
+        @CacheEvict(value = "categories", allEntries = true),
+        @CacheEvict(value = "categoryWiseCourses", key = "#categoryId")
+    })
     public ResponseEntity<CommonApiResponse> deleteCategory(int categoryId) {
         CommonApiResponse response;
 

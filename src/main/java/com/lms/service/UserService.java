@@ -27,6 +27,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,6 +69,7 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @CacheEvict(value = "usersByRole", key = "#userDto.role", condition = "#userDto.role != 'ADMIN' ")
     public ResponseEntity<CommonApiResponse> registerUser(UserDto userDto) {
 
         CommonApiResponse response;
@@ -220,14 +224,14 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<CommonApiResponse> getUsersByRole(String role) {
+    @Cacheable(value = "usersByRole", key = "#role")
+    public List<UserDto> getUsersByRole(String role) {
         CommonApiResponse response;
 
          
         if (role == null || role.isEmpty()) {
             logger.warn("Role is missing in request.");
-            response = new CommonApiResponse(false, "Role is missing", null);
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            return null;
         }
 
         try {
@@ -236,8 +240,7 @@ public class UserService {
 
             if (users.isEmpty()) {
                 logger.info("No users found with role: {}", role);
-                response = new CommonApiResponse(false, "No users found", users);
-                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+                return new ArrayList<>() ;
             }
 
             List<UserDto> userDtos = new ArrayList<>();
@@ -257,15 +260,14 @@ public class UserService {
             // }
 
             logger.info("Users fetched successfully for role: {}", role);
-            response = new CommonApiResponse(true, "Users Fetched Successfully", userDtos);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            return userDtos;
 
         } catch (Exception e) {
             logger.error("Error while fetching users by role: {}", e.getMessage());
-            response = new CommonApiResponse(false, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return null;
         }
     }
+
 
     public ResponseEntity<CommonApiResponse> getMentorById(int mentorId) {
         CommonApiResponse response;
@@ -311,28 +313,34 @@ public class UserService {
         }
     }
 
-    public void fetchMentorImage(String mentorImageName, HttpServletResponse resp) {
-        try {
-            Resource resource = storageRepository.load(mentorImageName);
+    @Cacheable(value = "mentorImages", key = "#mentorImageName")
+    public byte[] fetchMentorImage(String mentorImageName, HttpServletResponse resp) {
 
-            if (resource != null) {
-                try (InputStream in = resource.getInputStream(); 
-                     ServletOutputStream out = resp.getOutputStream()) {
-                    FileCopyUtils.copy(in, out);
-                }
-                logger.info("Mentor image sent successfully: {}", mentorImageName);
-            } else {
-                logger.warn("Mentor image not found: {}", mentorImageName);
-                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        logger.info(("FROM DB: Attempting to fetch mentor image"));
+        
+        Resource resource = storageRepository.load(mentorImageName);
+
+        if (resource != null) {
+            try (InputStream in = resource.getInputStream()) {
+                byte[] imageBytes = in.readAllBytes();
+                logger.info("Mentor image for with name {} cached successfully", mentorImageName);;
+                return imageBytes;
+            } catch(IOException e) {
+                logger.error("Error while fetching mentor image {}: {}", mentorImageName,e.getMessage());
+                return null;
             }
-
-        } catch (IOException e) {
-            logger.error("Error while fetching mentor image: {}", e.getMessage());
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        } else {
+            logger.warn("No mentor image found for image name {}",mentorImageName);
+            return null;
         }
     }
 
-    public ResponseEntity<CommonApiResponse> deleteMentor(int mentorId) {
+    
+    @Caching(evict = {
+        @CacheEvict(value = "usersByRole", key = "'MENTOR'"),
+        @CacheEvict(value = "mentorImages",key = "#mentorImageName")
+    })
+    public ResponseEntity<CommonApiResponse> deleteMentor(int mentorId,String mentorImageName) {
         CommonApiResponse response;
 
          

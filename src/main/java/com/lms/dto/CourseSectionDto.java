@@ -1,5 +1,6 @@
 package com.lms.dto;
 
+import java.io.Serializable;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -7,12 +8,14 @@ import com.lms.model.CourseSection;
 import lombok.Data;
 
 @Data
-public class CourseSectionDto {
+public class CourseSectionDto implements Serializable{
 
     @JsonProperty(access=JsonProperty.Access.READ_ONLY)
     private int id;
 
     private int courseId;
+
+    private int mentorId;
 
     private String sectionNo;
 

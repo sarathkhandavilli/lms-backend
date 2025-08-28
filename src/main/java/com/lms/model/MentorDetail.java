@@ -1,9 +1,11 @@
 package com.lms.model;
 
+import java.io.Serializable;
+
 import lombok.Data;
 
 @Data
-public class MentorDetail {
+public class MentorDetail implements Serializable{
 
     private int id;
 

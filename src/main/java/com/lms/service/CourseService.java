@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,7 +56,9 @@ public class CourseService {
 
     @Caching( evict = {
         @CacheEvict(value = "courses", allEntries = true),
-        @CacheEvict(value = "mentorDashboard", key = "#courseDto.mentorId" )
+        @CacheEvict(value = "mentorDashboard", key = "#courseDto.mentorId" ),
+        @CacheEvict(value = "MentorWiseCourses", key = "#courseDto.mentorId"),
+        @CacheEvict(value = "categoryWiseCourses", key = "#courseDto.categoryId")
     })
     public CourseDto addCourse(CourseDto courseDto) throws IOException {
         CommonApiResponse response;
@@ -99,6 +102,10 @@ public class CourseService {
             
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "courseDetailsOverviewByUser", key = "#dto.courseId + '-' + #dto.mentorId"),
+        @CacheEvict(value = "courseDetailsOverview", key = "#dto.courseId")
+    })
     public ResponseEntity<CommonApiResponse> addCourseSection(CourseSectionDto dto) {
         CommonApiResponse response;
 
@@ -127,6 +134,10 @@ public class CourseService {
         }
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "courseDetailsOverviewByUser", key = "#dto.courseId + '-' + #dto.mentorId"),
+        @CacheEvict(value = "courseDetailsOverview", key = "#dto.courseId")
+    })
     public ResponseEntity<CommonApiResponse> addCourseSectionTopic(CourseSectionTopicDto dto) {
         CommonApiResponse response;
 
@@ -155,8 +166,8 @@ public class CourseService {
         }
     }
 
-
-    public ResponseEntity<CommonApiResponse> fetchCourseById(int id) {
+    @Cacheable(value = "courseDetailsOverview", key = "#id")
+    public CourseDetailsDto fetchCourseById(int id) {
         CommonApiResponse response;
 
         logger.info("Fetching course details for course ID: {}", id);
@@ -166,41 +177,33 @@ public class CourseService {
                     .orElseThrow(() -> new ResourceNotFoundException("Course Details Not Found"));
 
             logger.info("Course details fetched successfully for course ID: {}", id);
-            response = new CommonApiResponse(true, "Course Details Fetched Successfully", courseDetailsDto);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            return courseDetailsDto;
         } catch (ResourceNotFoundException e) {
             logger.error("Error fetching course details for course ID {}: {}", id, e.getMessage());
-            response = new CommonApiResponse(false, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            return null;
         } catch (Exception e) {
             logger.error("Unexpected error while fetching course details for course ID {}: {}", id, e.getMessage());
-            response = new CommonApiResponse(false, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            // response = new CommonApiResponse(false, e.getMessage(), null);
+            // return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return null;
         }
     }
 
-    public ResponseEntity<CommonApiResponse> fetchCourseByIdAndUserId(int courseId, int userId) {
-        CommonApiResponse response;
-
+    @Cacheable(value = "courseDetailsOverviewByUser", key = "#courseId + '-' + #userId")
+    public CourseDetailsDto fetchCourseByIdAndUserId(int courseId, int userId) {
         logger.info("Fetching course details for course ID: {} and user ID: {}", courseId, userId);
 
         try {
-
-         
-            CourseDetailsDto courseDetailsDto = courseRepository.findCourseDetailsByCourseIdAndUserId(courseId, userId)
+            return courseRepository.findCourseDetailsByCourseIdAndUserId(courseId, userId)
                     .orElseThrow(() -> new ResourceNotFoundException("Course Details Not Found"));
-
-            logger.info("Course details fetched successfully for course ID: {} and user ID: {}", courseId, userId);
-            response = new CommonApiResponse(true, "Entire Course Details Fetched Successfully", courseDetailsDto);
-            return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (ResourceNotFoundException e) {
-            logger.error("Error fetching course details for course ID {} and user ID {}: {}", courseId, userId, e.getMessage());
-            response = new CommonApiResponse(false, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            logger.error("Error fetching course details for course ID {} and user ID {}: {}", 
+                        courseId, userId, e.getMessage());
+            return null;
         } catch (Exception e) {
-            logger.error("Unexpected error while fetching course details for course ID {} and user ID {}: {}", courseId, userId, e.getMessage());
-            response = new CommonApiResponse(false, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            logger.error("Unexpected error while fetching course details for course ID {} and user ID {}: {}", 
+                        courseId, userId, e.getMessage());
+            return null;
         }
     }
 
@@ -217,8 +220,8 @@ public class CourseService {
 
     
 
-
-    public ResponseEntity<CommonApiResponse> fetchCourseByMentor(int mentorId, String status) {
+    @Cacheable(value = "MentorWiseCourses", key = "#mentorId")
+    public List<CourseDto> fetchCourseByMentor(int mentorId, String status) {
         CommonApiResponse response;
 
         logger.info("Fetching courses for mentor ID: {} with status: {}", mentorId, status);
@@ -236,8 +239,7 @@ public class CourseService {
 
             if (courses.isEmpty()) {
                 logger.warn("No courses found for mentor ID: {} with status: {}", mentorId, status);
-                response = new CommonApiResponse(false, "Course not found for the given mentor and status", null);
-                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+                return new ArrayList<>();
             }
 
             List<CourseDto> courseDtos = courses.stream()
@@ -245,21 +247,21 @@ public class CourseService {
                     .collect(Collectors.toList());
 
             logger.info("Courses fetched successfully for mentor ID: {} with status: {}", mentorId, status);
-            response = new CommonApiResponse(true, "Course fetched successfully", courseDtos);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            return courseDtos;
 
         } catch (ResourceNotFoundException e) {
             logger.error("Error fetching courses for mentor ID {}: {}", mentorId, e.getMessage());
-            response = new CommonApiResponse(false, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            return null;
         } catch (Exception e) {
             logger.error("Unexpected error while fetching courses for mentor ID {}: {}", mentorId, e.getMessage());
-            response = new CommonApiResponse(false, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            // response = new CommonApiResponse(false, e.getMessage(), null);
+            // return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return null;
         }
     }
 
-    public ResponseEntity<CommonApiResponse> fetchCourseByCategory(int categoryId, String status) {
+    @Cacheable(value = "categoryWiseCourses", key = "#categoryId")
+    public List<CourseDto> fetchCourseByCategory(int categoryId, String status) {
         CommonApiResponse response;
 
         logger.info("Fetching courses for category ID: {} with status: {}", categoryId, status);
@@ -277,17 +279,16 @@ public class CourseService {
                     .collect(Collectors.toList());
 
             logger.info("Courses fetched successfully for category ID: {} with status: {}", categoryId, status);
-            response = new CommonApiResponse(true, "Category fetched successfully", courseDtos);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            return courseDtos;
 
         } catch (ResourceNotFoundException e) {
             logger.error("Error fetching courses for category ID {}: {}", categoryId, e.getMessage());
-            response = new CommonApiResponse(false, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            return null;
         } catch (Exception e) {
             logger.error("Unexpected error while fetching courses for category ID {}: {}", categoryId, e.getMessage());
-            response = new CommonApiResponse(false, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            // response = new CommonApiResponse(false, e.getMessage(), null);
+            // return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return null;
         }
     }
 
@@ -319,8 +320,14 @@ public class CourseService {
         }
     }
 
-    @CacheEvict(value = "mentorDashboard", key = "#mentorId" )
-    public boolean deleteCourse(int courseId,int mentorId) {
+    @Caching( evict = {
+        @CacheEvict(value = "mentorDashboard", key = "#mentorId" ),
+        @CacheEvict(value = "courses", allEntries = true),
+        @CacheEvict(value = "MentorWiseCourses",key = "#mentorId"),
+        @CacheEvict(value = "categoryWiseCourses",key = "#categoryId"),
+        @CacheEvict(value = "courseImages", key = "#thumbnailName")
+    })
+    public boolean deleteCourse(int courseId,int mentorId,int categoryId,String thumbnailName) {
 
         CommonApiResponse response;
 

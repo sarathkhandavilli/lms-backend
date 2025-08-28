@@ -9,6 +9,8 @@ public class EnrollmentDto {
 
     private int learnerId;
 
+    private int mentorId;
+
     private String type;
 
     private String cardNo;

@@ -7,6 +7,9 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -43,7 +46,11 @@ public class EnrollmentService {
     @Autowired
     UserRepository userRepository;
 
-
+    @Caching(evict = {
+        @CacheEvict(value = "allenrollments", allEntries = true),
+        @CacheEvict(value = "enrollmentsByLearner", key = "#enrollmentDto.learnerId"),
+        @CacheEvict(value = "enrollmentsForMentor", key = "#enrollmentDto.mentorId")
+    })
     public ResponseEntity<CommonApiResponse> enroll(EnrollmentDto enrollmentDto) {
 
         CommonApiResponse response;
@@ -128,7 +135,8 @@ public class EnrollmentService {
     }
     
 
-    public ResponseEntity<CommonApiResponse> fetchAllEnrollments() {
+    @Cacheable(value = "allenrollments")
+    public List<EnrollmentInfoDto> fetchAllEnrollments() {
 
         CommonApiResponse response;
 
@@ -139,20 +147,19 @@ public class EnrollmentService {
 
             if (enrollmentInfoDtos.isEmpty()) {
                 logger.warn("No enrollments found.");
-                response = new CommonApiResponse(false, "No enrollments present", null);
-                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+                return enrollmentInfoDtos;
             }
 
-            response = new CommonApiResponse(true, "Fetched all enrollments successfully", enrollmentInfoDtos);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            return enrollmentInfoDtos;
         } catch (Exception e) {
             logger.error("Error while fetching all enrollments: {}", e.getMessage());
-            response = new CommonApiResponse(true, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return null ;
         }
+
     }
 
-    public ResponseEntity<CommonApiResponse> fetchAllEnrollmentsByLearner(int learnerId) {
+    @Cacheable(value = "enrollmentsByLearner",key = "#learnerId")
+    public List<EnrollmentInfoLearnerDto> fetchAllEnrollmentsByLearner(int learnerId) {
 
         CommonApiResponse response;
 
@@ -163,20 +170,19 @@ public class EnrollmentService {
 
             if (enrollmentInfoLearnerDtos.isEmpty()) {
                 logger.warn("No enrollments found for learner ID: {}", learnerId);
-                response = new CommonApiResponse(false, "No enrollments for user", enrollmentInfoLearnerDtos);
-                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
             }
 
-            response = new CommonApiResponse(true, "Fetched all enrollments for learner " + learnerId + " successfully", enrollmentInfoLearnerDtos);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            return enrollmentInfoLearnerDtos;
+
         } catch (Exception e) {
             logger.error("Error while fetching enrollments for learner ID {}: {}", learnerId, e.getMessage());
-            response = new CommonApiResponse(true, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return null ;
         }
     }
 
-    public ResponseEntity<CommonApiResponse> fetchAllEnrollmentsForMentor(int mentorId) {
+
+    @Cacheable(value = "enrollmentsForMentor")
+    public List<EnrollmentInfoMentorDto> fetchAllEnrollmentsForMentor(int mentorId) {
 
         CommonApiResponse response;
 
@@ -190,16 +196,13 @@ public class EnrollmentService {
 
             if (enrollmentInfoMentorDtos.isEmpty()) {
                 logger.warn("No enrollments found for mentor ID: {}", mentorId);
-                response = new CommonApiResponse(false, "No enrollments found for mentor " + mentorId, enrollmentInfoMentorDtos);
-                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+                return enrollmentInfoMentorDtos;
             }
 
-            response = new CommonApiResponse(true, "Fetched all enrollments for mentor " + mentorId + " successfully", enrollmentInfoMentorDtos);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            return enrollmentInfoMentorDtos;
         } catch (Exception e) {
             logger.error("Error while fetching enrollments for mentor ID {}: {}", mentorId, e.getMessage());
-            response = new CommonApiResponse(true, e.getMessage(), null);
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return null;
         }
     }
 }

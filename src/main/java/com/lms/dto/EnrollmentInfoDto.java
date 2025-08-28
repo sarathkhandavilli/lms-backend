@@ -1,9 +1,11 @@
 package com.lms.dto;
 
+import java.io.Serializable;
+
 import lombok.Data;
 
 @Data
-public class EnrollmentInfoDto {
+public class EnrollmentInfoDto implements Serializable{
 
     private String learnerName;
 

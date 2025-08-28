@@ -67,14 +67,36 @@ public class CourseController {
     // fetches required course details when no one is logged in (any one)
     @GetMapping("fetch/course-id")
     public ResponseEntity<CommonApiResponse> fetchCourseById(@RequestParam("courseId") int courseId) {
-        return courseService.fetchCourseById(courseId);
+        CommonApiResponse response;
+        CourseDetailsDto courseDetailsDto = courseService.fetchCourseById(courseId);
+
+        if (courseDetailsDto == null) {
+            response = new CommonApiResponse(false,"Course not found or INTERNAL_SERVER_ERROR", null);
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+
+            response = new CommonApiResponse(true, "Course Details Fetched Successfully", courseDetailsDto);
+            return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // fetches the entire course details when user logged in (particular user)
     @GetMapping("fetch/course-user-id")
-    public ResponseEntity<CommonApiResponse> fetchCourseByIdAndUserId(@RequestParam("cid") int courseId, @RequestParam("uid") int userId) {
-        return courseService.fetchCourseByIdAndUserId(courseId, userId);
+    public ResponseEntity<CommonApiResponse> fetchCourseByIdAndUserId(
+            @RequestParam("cid") int courseId,
+            @RequestParam("uid") int userId) {
+
+        CommonApiResponse response;
+        CourseDetailsDto courseDetailsDto = courseService.fetchCourseByIdAndUserId(courseId, userId);
+
+        if (courseDetailsDto == null) {
+            response = new CommonApiResponse(false, "Course not found or INTERNAL_SERVER_ERROR", null);
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+
+        response = new CommonApiResponse(true, "Course Details Fetched Successfully", courseDetailsDto);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
 
     // fetches all the active courses in the webpage(home page) (any one)
     @GetMapping("fetch/status-wise")
@@ -87,13 +109,39 @@ public class CourseController {
     // fetches all the courses that a mentor created (to see in my courses of mentor)
     @GetMapping("fetch/mentor-wise")
     public ResponseEntity<CommonApiResponse> fetchCourseByMentor(@RequestParam("mentorId") int mentorId, @RequestParam("status") String status) {
-        return courseService.fetchCourseByMentor(mentorId, status);
+        CommonApiResponse response;
+
+        List<CourseDto> courseDtos = courseService.fetchCourseByMentor(mentorId, status);
+        if (courseDtos == null) {
+            response = new CommonApiResponse(false, "INTERNAL_SERVER_ERROR", null);
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+        if (courseDtos.isEmpty()) {
+            response = new CommonApiResponse(false, "Course not found for the given mentor and status", null);
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        } else {
+            response = new CommonApiResponse(true, "Course fetched successfully", courseDtos);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
     }
 
     // filters courses according to category
     @GetMapping("fetch/category-wise")
     public ResponseEntity<CommonApiResponse> fetchCourseByCategory(@RequestParam("categoryId") int categoryId, @RequestParam("status") String status) {
-        return courseService.fetchCourseByCategory(categoryId,status);
+
+        CommonApiResponse response;
+
+        List<CourseDto> courseDtos = courseService.fetchCourseByCategory(categoryId,status);
+
+        if (courseDtos == null) {
+            response = new CommonApiResponse(false, "INTERNAL_SERVER_ERROR OR NOT_FOUND", null);
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+
+        response = new CommonApiResponse(true, "Category fetched successfully", courseDtos);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
+
     }
 
     // filters courses according to name
@@ -104,9 +152,9 @@ public class CourseController {
 
     // deactives the course
     @DeleteMapping("/delete")
-    public ResponseEntity<CommonApiResponse> deleteCourse(@RequestParam("courseId") int courseId, @RequestParam("mentorId") int mentorId) {
+    public ResponseEntity<CommonApiResponse> deleteCourse(@RequestParam("courseId") int courseId, @RequestParam("mentorId") int mentorId, @RequestParam("categoryId") int categoryId,@RequestParam("thumbnailName") String thumbnailName) {
         CommonApiResponse response;
-        boolean isDeleted =  courseService.deleteCourse(courseId,mentorId);
+        boolean isDeleted =  courseService.deleteCourse(courseId,mentorId,categoryId,thumbnailName);
         if(isDeleted) {
             response = new CommonApiResponse(isDeleted, "Course Deleted Successfully", null);
             return new ResponseEntity<>(response,HttpStatus.OK);

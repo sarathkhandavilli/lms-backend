@@ -5,6 +5,7 @@ import com.lms.dto.CommonApiResponse;
 import com.lms.dto.LoginDto;
 import com.lms.dto.MentorDetailDto;
 import com.lms.dto.UserDto;
+import com.lms.model.User;
 import com.lms.repository.UserRepository;
 import com.lms.service.EmailService;
 import com.lms.service.OtpService;
@@ -12,7 +13,11 @@ import com.lms.service.UserService;
 
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.io.IOException;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -70,7 +75,23 @@ public class UserController {
     // fetches the particular type of users(mentors,learners) for admin to view all the mentors,learners
     @GetMapping("/fetch/role-wise")
     public ResponseEntity<CommonApiResponse> getUsersByRole(@RequestParam("role") String role) {
-        return userService.getUsersByRole(role);
+
+        CommonApiResponse response;
+
+        List<UserDto> userDtos = userService.getUsersByRole(role);
+
+        if (userDtos == null) {
+            response = new CommonApiResponse(false, "BAD_REQUEST OR INTERNAL_SERVER_ERROR", null);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        if(userDtos.isEmpty()) {
+            response = new CommonApiResponse(false, "No users found", userDtos);
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        } else {
+            response = new CommonApiResponse(true, "Users Fetched Successfully", userDtos);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
     }
 
     // fetches particular mentor profile
@@ -81,14 +102,20 @@ public class UserController {
 
     // deactivates mentor (admin can)
     @DeleteMapping("/mentor/delete")
-    public ResponseEntity<CommonApiResponse> deleteMentor(@RequestParam("mentorId") int mentorId) {
-        return userService.deleteMentor(mentorId);
+    public ResponseEntity<CommonApiResponse> deleteMentor(@RequestParam("mentorId") int mentorId, @RequestParam("mentorImageName") String mentorImageName) {
+        return userService.deleteMentor(mentorId,mentorImageName);
     }
 
     // fetches mentor profile pic to display
     @GetMapping(value="/fetch/{mentorImageName}", produces="image/*")
-    public void getMentorImage(@PathVariable("mentorImageName") String mentorImageName, HttpServletResponse resp) {
-        userService.fetchMentorImage(mentorImageName, resp);
+    public void getMentorImage(@PathVariable("mentorImageName") String mentorImageName, HttpServletResponse resp) throws IOException {
+       byte[] imageBytes = userService.fetchMentorImage(mentorImageName, resp);
+
+       if (imageBytes != null) {
+        resp.getOutputStream().write(imageBytes);
+       } else {
+        resp.setStatus(HttpStatus.NOT_FOUND.value());
+       }
     }
 
 }
