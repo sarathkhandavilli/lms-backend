@@ -108,15 +108,10 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository{
 
             logger.info("enrollment time before changing "+utcTimeString+" "+userTimeZone);
 
+            Instant utcInstant = Instant.parse(utcTimeString);
 
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.n");
-
-            LocalDateTime localDateTime = LocalDateTime.parse(utcTimeString, dateTimeFormatter);
-
-            Instant utcInstant = localDateTime.toInstant(ZoneOffset.UTC);
 
             ZoneId userZone = ZoneId.of(userTimeZone);
-
             ZonedDateTime userDateTime = utcInstant.atZone(userZone);
 
             String formattedTime = userDateTime.format(DateTimeFormatter.ofPattern("dd MMM yyyy hh:mm a z"));
@@ -172,14 +167,10 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository{
             logger.info("enrollment time before changing "+utcTimeString+" "+userTimeZone);
 
 
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.n");
+            Instant utcInstant = Instant.parse(utcTimeString);
 
-            LocalDateTime localDateTime = LocalDateTime.parse(utcTimeString, dateTimeFormatter);
-
-            Instant utcInstant = localDateTime.toInstant(ZoneOffset.UTC);
 
             ZoneId userZone = ZoneId.of(userTimeZone);
-
             ZonedDateTime userDateTime = utcInstant.atZone(userZone);
 
             String formattedTime = userDateTime.format(DateTimeFormatter.ofPattern("dd MMM yyyy hh:mm a z"));

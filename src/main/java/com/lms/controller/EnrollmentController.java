@@ -63,6 +63,11 @@ public class EnrollmentController {
 
         List<EnrollmentInfoLearnerDto> enrollmentInfoLearnerDtos = enrollmentService.fetchAllEnrollmentsByLearner(learnerId,userTimeZone);
 
+        if (enrollmentInfoLearnerDtos == null) {
+            response = new CommonApiResponse(true, "INTERNAL_SERVER_ERROR", null);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         if (enrollmentInfoLearnerDtos.isEmpty()) {
             response = new CommonApiResponse(false, "No enrollments for user", enrollmentInfoLearnerDtos);
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
