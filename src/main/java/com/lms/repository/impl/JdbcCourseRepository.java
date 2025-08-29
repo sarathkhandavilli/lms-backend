@@ -25,90 +25,84 @@ public class JdbcCourseRepository implements CourseRepository {
 
     @Override
     public Optional<CourseDetailsDto> findCourseDetailsById(int courseId) {
-        
-    String sql = """
-        SELECT c.id AS course_id, (m.first_name || ' ' ||  m.last_name ) AS mentor_name, c.name AS course_name, c.description AS course_description, c.prerequisite, c.author_course_note,
-               c.price, c.discount_in_percent, c.type, c.thumbnail,c.mentor_id,
-               cs.id AS section_id, cs.section_no, cs.name AS section_name, cs.description AS section_description,
-               cst.id AS topic_id, cst.topic_no, cst.name AS topic_name, cst.description AS topic_description
-        FROM course c
-        LEFT JOIN course_section cs ON cs.course_id = c.id
-        LEFT JOIN course_section_topic cst ON cst.section_id = cs.id
-        LEFT JOIN users m ON c.mentor_id = m.id
-        WHERE c.id = ?
-    """;
+        String sql = """
+            SELECT c.id AS course_id, (m.first_name || ' ' ||  m.last_name ) AS mentor_name, c.name AS course_name, c.description AS course_description, c.prerequisite, c.author_course_note,
+                c.price, c.discount_in_percent, c.type, c.thumbnail, c.mentor_id,
+                cs.id AS section_id, cs.section_no, cs.name AS section_name, cs.description AS section_description,
+                cst.id AS topic_id, cst.topic_no, cst.name AS topic_name, cst.description AS topic_description
+            FROM course c
+            LEFT JOIN course_section cs ON cs.course_id = c.id
+            LEFT JOIN course_section_topic cst ON cst.section_id = cs.id
+            LEFT JOIN users m ON c.mentor_id = m.id
+            WHERE c.id = ?
+            ORDER BY cs.section_no ASC, cst.topic_no ASC
+        """;
 
-    List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, courseId);
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, courseId);
 
-    if (rows.isEmpty()) {
-        return Optional.empty();
-    }
-
-    CourseDetailsDto courseDetailsDto = new CourseDetailsDto();
-    Map<String, CourseSectionDto> sectionMap = new LinkedHashMap<>();
-    Map<String, CourseSectionTopicDto> topicMap = new LinkedHashMap<>();
-
-    for (Map<String, Object> row : rows) {
-        // Set course-level data only once
-        if (courseDetailsDto.getName() == null) {
-            courseDetailsDto.setCourseId((Integer) row.get("course_id"));
-            courseDetailsDto.setName((String) row.get("course_name"));
-            courseDetailsDto.setDescription((String) row.get("course_description"));
-            courseDetailsDto.setPrerequisite((String) row.get("prerequisite"));
-            courseDetailsDto.setAuthorCourseNote((String) row.get("author_course_note"));
-            courseDetailsDto.setPrice(((BigDecimal) row.get("price")).doubleValue());
-            courseDetailsDto.setDiscountInPercent(((Number) row.get("discount_in_percent")).doubleValue());
-            courseDetailsDto.setType((String) row.get("type"));
-            courseDetailsDto.setMentorName((String) row.get("mentor_name"));
-            courseDetailsDto.setThumbnail((String) row.get("thumbnail"));
-            courseDetailsDto.setMentorId((Integer) row.get("mentor_id"));
+        if (rows.isEmpty()) {
+            return Optional.empty();
         }
 
-        String sectionNo = (String) row.get("section_no");
-        CourseSectionDto sectionDto = sectionMap.get(sectionNo);
-        if (sectionDto == null) {
-            sectionDto = new CourseSectionDto();
-            sectionDto.setSectionNo(sectionNo);
-            sectionDto.setName((String) row.get("section_name"));
-            sectionDto.setDescription((String) row.get("section_description"));
+        CourseDetailsDto courseDetailsDto = new CourseDetailsDto();
+        Map<String, CourseSectionDto> sectionMap = new LinkedHashMap<>();
+        Map<String, CourseSectionTopicDto> topicMap = new LinkedHashMap<>();
 
-            // Handle potential null value for section_id
-            Integer sectionId = (Integer) row.get("section_id");
-            if (sectionId != null) {
-                sectionDto.setId(sectionId);
+        for (Map<String, Object> row : rows) {
+            if (courseDetailsDto.getName() == null) {
+                courseDetailsDto.setCourseId((Integer) row.get("course_id"));
+                courseDetailsDto.setName((String) row.get("course_name"));
+                courseDetailsDto.setDescription((String) row.get("course_description"));
+                courseDetailsDto.setPrerequisite((String) row.get("prerequisite"));
+                courseDetailsDto.setAuthorCourseNote((String) row.get("author_course_note"));
+                courseDetailsDto.setPrice(((BigDecimal) row.get("price")).doubleValue());
+                courseDetailsDto.setDiscountInPercent(((Number) row.get("discount_in_percent")).doubleValue());
+                courseDetailsDto.setType((String) row.get("type"));
+                courseDetailsDto.setMentorName((String) row.get("mentor_name"));
+                courseDetailsDto.setThumbnail((String) row.get("thumbnail"));
+                courseDetailsDto.setMentorId((Integer) row.get("mentor_id"));
             }
 
-            sectionDto.setCourseSectionTopicDtos(new ArrayList<>());
-            sectionMap.put(sectionNo, sectionDto);
+            Integer sectionId = (Integer) row.get("section_id");
+            if (sectionId != null) {
+                String sectionNo = (String) row.get("section_no");
+                CourseSectionDto sectionDto = sectionMap.get(sectionNo);
+                if (sectionDto == null) {
+                    sectionDto = new CourseSectionDto();
+                    sectionDto.setId(sectionId);
+                    sectionDto.setSectionNo(sectionNo);
+                    sectionDto.setName((String) row.get("section_name"));
+                    sectionDto.setDescription((String) row.get("section_description"));
+                    sectionDto.setCourseSectionTopicDtos(new ArrayList<>());
+                    sectionMap.put(sectionNo, sectionDto);
+                }
+
+                Integer topicId = (Integer) row.get("topic_id");
+                if (topicId != null) {
+                    String topicNo = (String) row.get("topic_no");
+                    if (!topicMap.containsKey(topicNo)) {
+                        CourseSectionTopicDto topicDto = new CourseSectionTopicDto();
+                        topicDto.setId(topicId);
+                        topicDto.setTopicNo(topicNo);
+                        topicDto.setName((String) row.get("topic_name"));
+                        topicDto.setDescription((String) row.get("topic_description"));
+                        sectionDto.getCourseSectionTopicDtos().add(topicDto);
+                        topicMap.put(topicNo, topicDto);
+                    }
+                }
+            }
+
         }
 
-        CourseSectionTopicDto topicDto = new CourseSectionTopicDto();
-
-        if (topicMap.containsKey((String)row.get("topic_no"))) {
-            continue;
-        }
-
-        topicDto.setTopicNo((String) row.get("topic_no"));
-        topicDto.setName((String) row.get("topic_name"));
-        topicDto.setDescription((String) row.get("topic_description"));
-
-        // Handle potential null value for topic_id
-        Integer topicId = (Integer) row.get("topic_id");
-        if (topicId != null) {
-            topicDto.setId(topicId);
-        }
-
-        sectionDto.getCourseSectionTopicDtos().add(topicDto);
-        topicMap.put(topicDto.getTopicNo(),topicDto);
+        courseDetailsDto.setCourseSectionDtos(new ArrayList<>(sectionMap.values()));
+        return Optional.of(courseDetailsDto);
     }
 
-    courseDetailsDto.setCourseSectionDtos(new ArrayList<>(sectionMap.values()));
-    return Optional.of(courseDetailsDto);
-}
 
     
 
     public Optional<CourseDetailsDto> findCourseDetailsByCourseIdAndUserId(int courseId, int userId) {
+
         String sql = """
             SELECT c.id as course_id, c.mentor_id,(m.first_name || ' ' ||  m.last_name ) AS mentor_name, c.name AS course_name, c.description AS course_description, c.prerequisite, c.author_course_note,
                 c.price, c.discount_in_percent, c.type, c.thumbnail,
@@ -120,18 +114,20 @@ public class JdbcCourseRepository implements CourseRepository {
             LEFT JOIN enrollment e ON e.course_id = c.id
             LEFT JOIN users m ON c.mentor_id = m.id
             WHERE c.id = ? AND ( e.learner_id = ? or c.mentor_id = ? )
+            ORDER BY cs.section_no ASC, cst.topic_no ASC 
         """;
 
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, courseId,userId,userId);
 
-        if (rows.isEmpty()) return Optional.empty();
+        if (rows.isEmpty()) {
+            return Optional.empty();
+        }
 
         CourseDetailsDto courseDetailsDto = new CourseDetailsDto();
         Map<String, CourseSectionDto> sectionMap = new LinkedHashMap<>();
-        Map<String,CourseSectionTopicDto> topicMap = new LinkedHashMap<>();
+        Map<String, CourseSectionTopicDto> topicMap = new LinkedHashMap<>();
 
         for (Map<String, Object> row : rows) {
-            // Set course info once
             if (courseDetailsDto.getName() == null) {
                 courseDetailsDto.setCourseId((Integer) row.get("course_id"));
                 courseDetailsDto.setName((String) row.get("course_name"));
@@ -141,55 +137,49 @@ public class JdbcCourseRepository implements CourseRepository {
                 courseDetailsDto.setPrice(((BigDecimal) row.get("price")).doubleValue());
                 courseDetailsDto.setDiscountInPercent(((Number) row.get("discount_in_percent")).doubleValue());
                 courseDetailsDto.setType((String) row.get("type"));
+                courseDetailsDto.setMentorName((String) row.get("mentor_name"));
                 courseDetailsDto.setThumbnail((String) row.get("thumbnail"));
                 courseDetailsDto.setMentorId((Integer) row.get("mentor_id"));
-                courseDetailsDto.setMentorName((String) row.get("mentor_name"));
-
             }
 
-            String sectionNo = (String) row.get("section_no");
-            CourseSectionDto sectionDto = sectionMap.get(sectionNo);
-            if (sectionDto == null) {
-                sectionDto = new CourseSectionDto();
-                sectionDto.setSectionNo(sectionNo);
-                sectionDto.setName((String) row.get("section_name"));
-                sectionDto.setDescription((String) row.get("section_description"));
-
-                // Handle potential null value for section_id
-                Integer sectionId = (Integer) row.get("section_id");
-                if (sectionId != null) {
+            Integer sectionId = (Integer) row.get("section_id");
+            if (sectionId != null) {
+                String sectionNo = (String) row.get("section_no");
+                CourseSectionDto sectionDto = sectionMap.get(sectionNo);
+                if (sectionDto == null) {
+                    sectionDto = new CourseSectionDto();
                     sectionDto.setId(sectionId);
+                    sectionDto.setSectionNo(sectionNo);
+                    sectionDto.setName((String) row.get("section_name"));
+                    sectionDto.setDescription((String) row.get("section_description"));
+                    sectionDto.setCourseSectionTopicDtos(new ArrayList<>());
+                    sectionMap.put(sectionNo, sectionDto);
                 }
 
-                sectionDto.setCourseSectionTopicDtos(new ArrayList<>());
-                sectionMap.put(sectionNo, sectionDto);
+                Integer topicId = (Integer) row.get("topic_id");
+                if (topicId != null) {
+                    String topicNo = (String) row.get("topic_no");
+                    if (!topicMap.containsKey(topicNo)) {
+                        CourseSectionTopicDto topicDto = new CourseSectionTopicDto();
+                        topicDto.setId(topicId);
+                        topicDto.setTopicNo(topicNo);
+                        topicDto.setName((String) row.get("topic_name"));
+                        topicDto.setDescription((String) row.get("topic_description"));
+                        topicDto.setYoutubeUrl((String) row.get("youtube_url"));
+                        sectionDto.getCourseSectionTopicDtos().add(topicDto);
+                        topicMap.put(topicNo, topicDto);
+                    }
+                }
             }
 
-            CourseSectionTopicDto topicDto = new CourseSectionTopicDto();
-            if (topicMap.containsKey((String) row.get("topic_no"))) {
-                continue;
-            }
-            topicDto.setTopicNo((String) row.get("topic_no"));
-            topicDto.setName((String) row.get("topic_name"));
-            topicDto.setDescription((String) row.get("topic_description"));
-            topicDto.setYoutubeUrl((String) row.get("youtube_url"));
-
-            // Handle potential null value for topic_id
-            Integer topicId = (Integer) row.get("topic_id");
-            if (topicId != null) {
-                topicDto.setId(topicId);
-            }
-
-            sectionDto.getCourseSectionTopicDtos().add(topicDto);
-            topicMap.put(topicDto.getTopicNo(),topicDto);
         }
-
         courseDetailsDto.setCourseSectionDtos(new ArrayList<>(sectionMap.values()));
         return Optional.of(courseDetailsDto);
     }
 
 
     public Optional<Course> findById(int id) {
+
         String sql = "SELECT * FROM course WHERE id = ?";
 
         try {
