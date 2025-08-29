@@ -117,7 +117,7 @@ public class JdbcUserRepository implements UserRepository {
     public List<User> findUsersByRoleAndStatus(String role) {
 
         role = role.equals("MENTOR") ? role.toUpperCase() : role;
-        String sql = "SELECT * FROM users u WHERE role = ? AND status = ? ORDER BY u.id ASC ";
+        String sql = "SELECT * FROM users u WHERE role = ? AND status = ? ORDER BY u.id DESC";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
         User user = new User();
