@@ -12,11 +12,8 @@ import com.lms.dto.EnrollmentInfoMentorDto;
 import com.lms.model.Enrollment;
 import com.lms.repository.EnrollmentRepository;
 
-import java.security.Timestamp;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -62,7 +59,7 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository{
                     JOIN course c ON e.course_id = c.id
                     JOIN users m ON c.mentor_id = m.id
                     LEFT JOIN payment p ON p.id = e.payment_id
-                    ORDER BY e.enrollment_time DESC
+                    ORDER BY e.id DESC
                 """;
 
             List<EnrollmentInfoDto> enrollmentInfoDtos = jdbcTemplate.query(sql, (rs, rowNum) -> {
@@ -95,6 +92,7 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository{
                     JOIN enrollment e ON l.id = e.learner_id 
                     JOIN course c ON e.course_id = c.id 
                     WHERE l.id = ?
+                    ORDER BY e.id DESC
                 """;
 
         List<EnrollmentInfoLearnerDto> enrollmentInfoLearnerDto = jdbcTemplate.query(sql,(rs,rowNum) -> {
@@ -155,6 +153,7 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository{
                 JOIN enrollment e ON l.id = e.learner_id 
                 JOIN course c ON e.course_id = c.id
                 WHERE c.mentor_id = ? AND c.status = ?
+                ORDER BY e.id DESC
                 """;
 
         List<EnrollmentInfoMentorDto> enrollmentInfoMentorDtos = jdbcTemplate.query(sql, (rs, rowNum) -> {

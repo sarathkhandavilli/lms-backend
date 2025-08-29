@@ -36,7 +36,8 @@ public class JdbcCategoryRepository implements CategoryRepository {
 
     @Override
     public List<Category> findAll(String status) {
-        String sql = "SELECT * FROM category WHERE status = ? ";
+        
+        String sql = "SELECT * FROM category c WHERE status = ? ORDER BY c.name ";
 
         List<Category> categories =  jdbcTemplate.query(sql, (rs, rowNum) -> {
             Category category = new Category();

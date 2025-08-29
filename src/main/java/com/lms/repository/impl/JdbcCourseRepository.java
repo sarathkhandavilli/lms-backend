@@ -251,7 +251,22 @@ public class JdbcCourseRepository implements CourseRepository {
     // }
     @Override
     public Optional<List<Course>> findByStatus(String status) {
-        String sql = "SELECT * FROM course WHERE status = ?";
+        String sql = """
+                SELECT 
+                    c.id, c.name, c.description, c.prerequisite, c.author_course_note, 
+                    c.price, c.discount_in_percent, c.added_date_time, c.type, 
+                    c.thumbnail, c.status, c.category_id, c.mentor_id,
+                    COUNT(e.id) AS enrollments
+                    FROM course c 
+                    LEFT JOIN enrollment e ON e.course_id = c.id
+                    WHERE c.status = ?
+                    GROUP BY 
+                    c.id, c.name, c.description, c.prerequisite, c.author_course_note, 
+                    c.price, c.discount_in_percent, c.added_date_time, c.type, 
+                    c.thumbnail, c.status, c.category_id, c.mentor_id
+                    ORDER BY enrollments DESC
+ 
+                """;;
 
         List<Course> courses = jdbcTemplate.query(sql, new Object[]{status}, (rs, rowNum) -> {
             Course course = new Course();
@@ -276,7 +291,8 @@ public class JdbcCourseRepository implements CourseRepository {
     }
     @Override
     public List<Course> findByMentorAndStatus(int mentorId, String status) {
-        String sql = "SELECT * FROM course WHERE mentor_id = ? AND status = ?";
+
+        String sql = "SELECT * FROM course c WHERE mentor_id = ? AND status = ? ORDER BY c.id DESC ";
 
         return jdbcTemplate.query(sql, new Object[]{mentorId, status}, (rs, rowNum) -> {
             Course course = new Course();
@@ -296,11 +312,26 @@ public class JdbcCourseRepository implements CourseRepository {
             return course;
         });
     }
+    
     @Override
     public Optional<List<Course>> findByNameAndStatus(String courseName, String status) {
 
         courseName = "%" + courseName.replace(" ", "%") + "%";
-        String sql = "SELECT * FROM course WHERE name ILIKE ? AND status = ?";
+        String sql = """
+                SELECT 
+                    c.id, c.name, c.description, c.prerequisite, c.author_course_note, 
+                    c.price, c.discount_in_percent, c.added_date_time, c.type, 
+                    c.thumbnail, c.status, c.category_id, c.mentor_id,
+                    COUNT(e.id) AS enrollments
+                    FROM course c 
+                    LEFT JOIN enrollment e ON e.course_id = c.id
+                    WHERE name ILIKE ? AND status = ?
+                    GROUP BY 
+                    c.id, c.name, c.description, c.prerequisite, c.author_course_note, 
+                    c.price, c.discount_in_percent, c.added_date_time, c.type, 
+                    c.thumbnail, c.status, c.category_id, c.mentor_id
+                    ORDER BY enrollments DESC
+                """;;
 
         List<Course> courses = jdbcTemplate.query(sql, new Object[]{courseName, status}, (rs, rowNum) -> {
             Course course = new Course();
@@ -351,7 +382,21 @@ public class JdbcCourseRepository implements CourseRepository {
     @Override
     public List<Course> findCourseByCategory(int categoryId, String status) {
 
-        String sql = "SELECT * FROM course WHERE category_id = ? AND status = ? ";
+        String sql = """
+                SELECT 
+                    c.id, c.name, c.description, c.prerequisite, c.author_course_note, 
+                    c.price, c.discount_in_percent, c.added_date_time, c.type, 
+                    c.thumbnail, c.status, c.category_id, c.mentor_id,
+                    COUNT(e.id) AS enrollments
+                    FROM course c 
+                    LEFT JOIN enrollment e ON e.course_id = c.id
+                    WHERE category_id = ? AND status = ?
+                    GROUP BY 
+                    c.id, c.name, c.description, c.prerequisite, c.author_course_note, 
+                    c.price, c.discount_in_percent, c.added_date_time, c.type, 
+                    c.thumbnail, c.status, c.category_id, c.mentor_id
+                    ORDER BY enrollments DESC
+                """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             Course course = new Course();

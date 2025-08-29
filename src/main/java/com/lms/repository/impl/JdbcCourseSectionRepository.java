@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -53,25 +52,5 @@ public class JdbcCourseSectionRepository implements CourseSectionRepository {
         return courseSection;
     }
 
-    public Optional<List<CourseSection>> findByCourseId(int courseId) {
-
-        String sql = "SELECT id, section_no, name, description, course_id FROM course_section WHERE course_id = ?";
-
-        try {
-        List<CourseSection> courseSections = jdbcTemplate.query(sql, (rs, rowNum) -> {
-            CourseSection section = new CourseSection();
-            section.setId(rs.getInt("id"));
-            section.setSectionNo(rs.getString("section_no"));
-            section.setName(rs.getString("name"));
-            section.setDescription(rs.getString("description"));
-            section.setCourseId(rs.getInt("course_id"));
-            return section;
-        }, courseId);
-            return Optional.of(courseSections);
-        } catch (Exception e) {
-            return Optional.empty();
-        }
-
-    }
 }
 
