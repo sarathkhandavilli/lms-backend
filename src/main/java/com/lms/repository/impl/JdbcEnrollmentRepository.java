@@ -61,7 +61,7 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository{
                     LEFT JOIN users l ON e.learner_id = l.id
                     JOIN course c ON e.course_id = c.id
                     JOIN users m ON c.mentor_id = m.id
-                    LEFT JOIN payment p ON p.enrollment_id = e.enrollment_id
+                    LEFT JOIN payment p ON p.id = e.payment_id
                     ORDER BY e.enrollment_time DESC
                 """;
 
@@ -168,7 +168,6 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository{
 
 
             Instant utcInstant = Instant.parse(utcTimeString);
-
 
             ZoneId userZone = ZoneId.of(userTimeZone);
             ZonedDateTime userDateTime = utcInstant.atZone(userZone);
