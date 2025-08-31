@@ -1,0 +1,52 @@
+spring:
+  sql:
+    init:
+      mode: never
+
+  application:
+    name: lms
+
+  datasource:
+
+#    url: ${SPRING_LOCAL_DATASOURCE_URL}
+    url: ${SPRING_DATASOURCE_URL}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 15
+      connection-timeout: 30000 # 30 seconds
+      idle-timeout: 600000    # 10 minutes
+      max-lifetime: 1800000  # 30 minutes
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${SPRING_MAIL_USERNAME}
+    password: ${SPRING_MAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+  cache:
+    type: redis
+
+  data:
+    redis:
+      url: ${REDIS_URL}
+      ssl:
+        enabled: true
+
+  server:
+    port: 8080
+
+supabase:
+  s3:
+    endpoint: ${SUPABASE_S3_ENDPOINT}
+    region: ${SUPABASE_S3_REGION}
+    access-key: ${SUPABASE_S3_ACCESSKEY}
+    secret-key: ${SUPABASE_S3_SECRETKEY}
+    bucket: ${SUPABASE_S3_BUCKET}
+
+# For local image path
+#image_path: D:/spring/images
+
+
