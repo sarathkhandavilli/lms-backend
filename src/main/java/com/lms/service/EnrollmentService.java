@@ -53,8 +53,8 @@ public class EnrollmentService {
         @CacheEvict(value = "allenrollments", allEntries = true),
         @CacheEvict(value = "enrollmentsByLearner", key = "#enrollmentDto.learnerId"),
         @CacheEvict(value = "enrollmentsForMentor", key = "#enrollmentDto.mentorId"),
-        @CacheEvict(value = "courseDetailsOverviewByUser", key = "#enrollmentDto.courseId + '-' + #enrollmentDto.learnerId")
-
+        @CacheEvict(value = "courseDetailsOverviewByUser", key = "#enrollmentDto.courseId + '-' + #enrollmentDto.learnerId"),
+            @CacheEvict(value = "mentorDashboard", key = "#enrollmentDto.mentorId")
     })
     public ResponseEntity<CommonApiResponse> enroll(EnrollmentDto enrollmentDto) {
 
@@ -74,9 +74,9 @@ public class EnrollmentService {
             User learner = userRepository.findById(enrollmentDto.getLearnerId())
                     .orElseThrow(() -> new ResourceNotFoundException("User Not found"));
 
-            if (!learner.getRole().equals("LEARNER")) {
-                throw new ResourceNotFoundException("Learner Not Found");
-            }
+//            if (!learner.getRole().equals("LEARNER")) {
+//                throw new ResourceNotFoundException("Learner Not Found");
+//            }
 
             User mentor = userRepository.findById(course.getMentorId())
                     .orElseThrow(() -> new ResourceNotFoundException("Mentor not found"));
@@ -186,7 +186,7 @@ public class EnrollmentService {
     }
 
 
-    @Cacheable(value = "enrollmentsForMentor")
+    @Cacheable(value = "enrollmentsForMentor",key = "#mentorId")
     public List<EnrollmentInfoMentorDto> fetchAllEnrollmentsForMentor(int mentorId,String userTimeZone) {
 
 

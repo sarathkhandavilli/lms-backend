@@ -77,8 +77,8 @@ public class SecurityConfig {
                 
 
                 // LEARNER-only endpoints
-                .requestMatchers(HttpMethod.POST, "/enrollment/enroll").hasRole("LEARNER")
-                .requestMatchers(HttpMethod.GET, "/enrollment/fetch/learner-wise").hasRole("LEARNER")
+                .requestMatchers(HttpMethod.POST, "/enrollment/enroll").hasAnyRole("LEARNER","MENTOR")
+                .requestMatchers(HttpMethod.GET, "/enrollment/fetch/learner-wise").hasAnyRole("LEARNER","MENTOR")
                 .requestMatchers(HttpMethod.GET, "/courses/fetch/course-user-id").hasAnyRole("LEARNER","MENTOR")
                 .requestMatchers(HttpMethod.GET, "/courses/fetch/youtube").hasRole("LEARNER")
 
