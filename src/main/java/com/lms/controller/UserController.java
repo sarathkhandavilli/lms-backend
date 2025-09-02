@@ -72,6 +72,11 @@ public class UserController {
         return userService.login(loginDto);
     }
 
+    @GetMapping("/checkUserStatus")
+    public String checkUserStatus(@RequestParam("status") String status, @RequestParam("mentorId") int mentorId) {
+        return userService.checkUserStatus(status,mentorId);
+    }
+
     // fetches the particular type of users(mentors,learners) for admin to view all the mentors,learners
     @GetMapping("/fetch/role-wise")
     public ResponseEntity<CommonApiResponse> getUsersByRole(@RequestParam("role") String role) {

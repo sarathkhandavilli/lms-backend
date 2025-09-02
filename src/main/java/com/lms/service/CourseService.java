@@ -103,7 +103,7 @@ public class CourseService {
     }
 
     @Caching(evict = {
-        @CacheEvict(value = "courseDetailsOverviewByUser", key = "#dto.courseId + '-' + #dto.mentorId"),
+        @CacheEvict(value = "courseDetailsOverviewByUser", allEntries = true),
         @CacheEvict(value = "courseDetailsOverview", key = "#dto.courseId")
     })
     public ResponseEntity<CommonApiResponse> addCourseSection(CourseSectionDto dto) {
@@ -135,7 +135,7 @@ public class CourseService {
     }
 
     @Caching(evict = {
-        @CacheEvict(value = "courseDetailsOverviewByUser", key = "#dto.courseId + '-' + #dto.mentorId"),
+        @CacheEvict(value = "courseDetailsOverviewByUser",allEntries = true),
         @CacheEvict(value = "courseDetailsOverview", key = "#dto.courseId")
     })
     public ResponseEntity<CommonApiResponse> addCourseSectionTopic(CourseSectionTopicDto dto) {

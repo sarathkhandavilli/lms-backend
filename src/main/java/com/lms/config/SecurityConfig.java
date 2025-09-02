@@ -65,6 +65,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/user/fetch/role-wise").hasRole("ADMIN")
 
                 // MENTOR-only endpoints
+                                .requestMatchers(HttpMethod.GET, "/user/checkUserStatus/**").hasRole("MENTOR")
                 .requestMatchers(HttpMethod.POST, "/courses/add").hasRole("MENTOR")
                 .requestMatchers(HttpMethod.POST, "/courses/section/add").hasRole("MENTOR")
                 .requestMatchers(HttpMethod.POST, "/courses/section/topic/add").hasRole("MENTOR")

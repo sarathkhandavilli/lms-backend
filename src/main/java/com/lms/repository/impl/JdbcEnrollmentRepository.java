@@ -53,7 +53,8 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository{
                         e.enrollment_id,
                         p.payment_id,
                         e.amount AS amount_paid,
-                        e.enrollment_time
+                        e.enrollment_time,
+                        l.role
                     FROM enrollment e
                     LEFT JOIN users l ON e.learner_id = l.id
                     JOIN course c ON e.course_id = c.id
@@ -63,7 +64,9 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository{
                 """;
 
             List<EnrollmentInfoDto> enrollmentInfoDtos = jdbcTemplate.query(sql, (rs, rowNum) -> {
+
                 EnrollmentInfoDto enrollmentInfoDto = new EnrollmentInfoDto();
+                enrollmentInfoDto.setRole(rs.getString("role"));
                 enrollmentInfoDto.setLearnerName(rs.getString("learner_name"));
                 enrollmentInfoDto.setMentorName(rs.getString("mentor_name"));
                 enrollmentInfoDto.setCourseName(rs.getString("course_name"));

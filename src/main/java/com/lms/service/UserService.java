@@ -69,6 +69,11 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+
+    public String checkUserStatus(String status, int mentorId) {
+        return userRepository.checkUserStatus(status,mentorId);
+    }
+
     @CacheEvict(value = "usersByRole", key = "#userDto.role", condition = "#userDto.role != 'ADMIN' ")
     public ResponseEntity<CommonApiResponse> registerUser(UserDto userDto) {
 
@@ -212,7 +217,6 @@ public class UserService {
             responseData.put("userId", user.getId());
             responseData.put("firstName",user.getFirstName());
             responseData.put("lastName",user.getLastName());
-            
 
             logger.info("Login successful for user: {}", loginDto.getEmail());
             response = new CommonApiResponse(true, "Login successful", responseData);

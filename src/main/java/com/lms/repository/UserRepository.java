@@ -29,4 +29,6 @@ public interface UserRepository {
 
     void deletePrevOtpsByMail(String email);
 
+    String checkUserStatus(String status, int mentorId);
+
 }

@@ -11,6 +11,8 @@ public class EnrollmentInfoDto implements Serializable{
 
     private String mentorName;
 
+    private String role;
+
     private String courseName;
 
     private String enrollmentId;
