@@ -128,9 +128,7 @@ public class UserService {
 
     @Caching( evict = {
             @CacheEvict(value = "usersByRole", key = "'MENTOR'"),
-            @CacheEvict(value = "mentorImages",key = "#mentorDetailDto.profilePicName"),
             @CacheEvict(value = "MentorWiseDetails", key = "#mentorDetailDto.mentorId")
-
     })
     public ResponseEntity<CommonApiResponse> addMentorDetail(MentorDetailDto mentorDetailDto) {
         CommonApiResponse response;
