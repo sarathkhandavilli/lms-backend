@@ -19,12 +19,11 @@ public class JdbcUserRepository implements UserRepository {
 
     @Override
     public String checkUserStatus(String status, int mentorId) {
-        String sql = "SELECT * FROM users WHERE status = ? AND id = ?";
-        int rowsAffectected = jdbcTemplate.update(sql,status,mentorId);
-        if (rowsAffectected > 0) return "ACTIVE";
-        else return "INACTIVE";
+        String sql = "SELECT status FROM users WHERE status = ? AND id = ?";
+        List<String> results = jdbcTemplate.queryForList(sql, String.class, status, mentorId);
+        return results.isEmpty() ? "ACTIVE" : results.get(0);
     }
-    
+
     @Override
     public Optional<User> findById(int id) {
 
