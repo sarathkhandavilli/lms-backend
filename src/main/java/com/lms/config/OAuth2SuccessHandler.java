@@ -78,7 +78,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         String token = jwtTokenUtil.generateToken(userDetails);
 
         // Redirect to the frontend with required params
-        response.sendRedirect("http://localhost:5173/redirect"
+        response.sendRedirect("https://upskillnow.netlify.app/redirect"
                 + "?token=" + token
                 + "&role=" + user.getRole()
                 + "&userId=" + user.getId()
