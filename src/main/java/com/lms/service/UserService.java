@@ -106,6 +106,7 @@ public class UserService {
 
             userDto.setStatus("ACTIVE");
             User user = UserDto.toEntity(userDto);
+            user.setRegisterType("FORM");
             user.setPassword(passwordEncoder.encode(userDto.getPassword()));
 
             User registered = userRepository.add(user);
@@ -188,7 +189,9 @@ public class UserService {
                 return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
             }
 
-            if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword()) 
+            boolean isGoogle = user.getRegisterType().equals("GOOGLE");
+
+            if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword()) && !isGoogle
                 && !loginDto.getPassword().equals(user.getPassword())) {
                 logger.warn("Incorrect password for user: {}", loginDto.getEmail());
                 return new ResponseEntity<>(new CommonApiResponse(false, "Incorrect password", null), HttpStatus.UNAUTHORIZED);
@@ -202,7 +205,7 @@ public class UserService {
             }
 
              
-            boolean isPlain = loginDto.getPassword().equals(user.getPassword());
+            boolean isPlain =  isGoogle || loginDto.getPassword().equals(user.getPassword());
 
             if (!isPlain) {
                 // Only authenticate if it's a hashed password

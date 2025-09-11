@@ -57,7 +57,7 @@ public class JdbcUserRepository implements UserRepository {
 
         if (user.getMentorDetailId() ==  0 ) {
 
-            String sql = "INSERT INTO users (first_name, last_name, email, password, phone_no, role, status) VALUES(?,?,?,?,?,?,?) RETURNING id";
+            String sql = "INSERT INTO users (first_name, last_name, email, password, phone_no, role, status, register_type) VALUES(?,?,?,?,?,?,?,?) RETURNING id";
 
             Integer generatedId = jdbcTemplate.queryForObject(sql, Integer.class,
                 user.getFirstName(),
@@ -66,7 +66,8 @@ public class JdbcUserRepository implements UserRepository {
                 user.getPassword(),
                 user.getPhoneNo(),
                 user.getRole(),
-                user.getStatus()
+                user.getStatus(),
+                    user.getRegisterType()
             );
 
             user.setId(generatedId);
@@ -99,6 +100,7 @@ public class JdbcUserRepository implements UserRepository {
                 user.setRole(rs.getString("role").toUpperCase());
                 user.setStatus(rs.getString("status"));
                 user.setAmount(rs.getDouble("amount"));
+                user.setRegisterType(rs.getString("register_type"));
                 user.setMentorDetailId(rs.getInt("mentor_detail_id"));
                 return user;
             });

@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
     status VARCHAR(255),
     mentor_detail_id INTEGER,
     amount NUMERIC(38, 2) DEFAULT 0,
+    register_type VARCHAR(255),
     CONSTRAINT users_mentor_detail_id_fkey FOREIGN KEY (mentor_detail_id) REFERENCES mentor_detail(id) ON DELETE CASCADE
 );
 

@@ -1,4 +1,20 @@
 spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 877728784114-umc3gs781d7s87lntlp50uqioighefjv.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - openid
+              - profile
+              - email
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
   sql:
     init:
       mode: never

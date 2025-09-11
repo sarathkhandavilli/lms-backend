@@ -23,6 +23,8 @@ public class User {
 
     private String status;
 
+    private String registerType;
+
     private int mentorDetailId;
 
     private MentorDetail mentorDetail;
