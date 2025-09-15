@@ -27,6 +27,6 @@ public class OAuth2FailureHandler implements AuthenticationFailureHandler {
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException authenticationException) throws IOException, ServletException {
 
         logger.error("Authentication failed: {}", authenticationException.getMessage());
-        response.sendRedirect(frontendLocalUrl);
+        response.sendRedirect(frontendNetlifyUrl);
     }
 }
