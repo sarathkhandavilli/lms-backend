@@ -101,7 +101,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
 
         // Redirect to the frontend with required params
-        String frontendUrl = frontendLocalUrl + "/redirect?token=" + token + "&role=" + user.getRole() + "&userId=" + user.getId() + "&firstName=" + user.getFirstName() + "&lastName=" + user.getLastName();
+        String frontendUrl = frontendNetlifyUrl + "/redirect?token=" + token + "&role=" + user.getRole() + "&userId=" + user.getId() + "&firstName=" + user.getFirstName() + "&lastName=" + user.getLastName();
         logger.info("Redirecting to frontend = "+frontendUrl);
         response.sendRedirect(frontendUrl);
     }
