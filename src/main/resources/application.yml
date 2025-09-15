@@ -14,7 +14,7 @@ spring:
               - openid
               - email
               - profile
-            redirect-uri: ${REDIRECT_URI}
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             authorization-grant-type: authorization_code
             client-name: Microsoft
             provider: azure-ad-provider

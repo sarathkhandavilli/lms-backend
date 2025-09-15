@@ -41,10 +41,25 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
+        logger.info("OAuth2User attributes:");
+        oAuth2User.getAttributes().forEach((key, value) -> {
+            logger.info(key + " = " + value);
+        });
+
         // Extract Google profile
         String email = oAuth2User.getAttribute("email");
         String firstName = oAuth2User.getAttribute("given_name");
         String lastName = oAuth2User.getAttribute("family_name");
+
+        if (firstName == null || lastName == null) {
+            String name = oAuth2User.getAttribute("name");
+            String[] fullName = name.split(" ");
+
+            if (fullName.length > 1) {
+                firstName = fullName[0];
+                lastName = fullName[1];
+            }
+        }
 
         // Role from query param
         String role = (String) request.getSession().getAttribute("role");
@@ -86,7 +101,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
 
         // Redirect to the frontend with required params
-        String frontendUrl = frontendNetlifyUrl + "/redirect?token=" + token + "&role=" + user.getRole() + "&userId=" + user.getId() + "&firstName=" + user.getFirstName() + "&lastName=" + user.getLastName();
+        String frontendUrl = frontendLocalUrl + "/redirect?token=" + token + "&role=" + user.getRole() + "&userId=" + user.getId() + "&firstName=" + user.getFirstName() + "&lastName=" + user.getLastName();
         logger.info("Redirecting to frontend = "+frontendUrl);
         response.sendRedirect(frontendUrl);
     }
