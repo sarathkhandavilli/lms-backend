@@ -4,17 +4,33 @@ spring:
       client:
         registration:
           google:
-            client-id: 877728784114-umc3gs781d7s87lntlp50uqioighefjv.apps.googleusercontent.com
-            client-secret: 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
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+
+          microsoft:
+            client-id: ${MICROSOFT_CLIENT_ID}
+            client-secret: ${MICROSOFT_CLIENT_SECRET}
             scope:
               - openid
-              - profile
               - email
+              - profile
+            redirect-uri: ${REDIRECT_URI}
+            authorization-grant-type: authorization_code
+            client-name: Microsoft
+            provider: azure-ad-provider
         provider:
-          google:
-            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
-            token-uri: https://oauth2.googleapis.com/token
-            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+          azure-ad-provider:
+            issuer-uri: https://login.microsoftonline.com/${MICROSOFT_TENANT_ID}/v2.0
+
+#            scope:
+#              - openid
+#              - profilef
+#              - email
+#        provider:
+#          google:
+#            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+#            token-uri: https://oauth2.googleapis.com/token
+#            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
   sql:
     init:
       mode: never
@@ -51,8 +67,7 @@ spring:
       ssl:
         enabled: true
 
-  server:
-    port: 8080
+
 
 supabase:
   s3:
@@ -64,5 +79,7 @@ supabase:
 
 # For local image path
 #image_path: D:/spring/images
+frontend_local_url: ${FRONTEND_LOCAL_URL}
+frontend_netlify_url: ${FRONTEND_NETLIFY_URL}
 
 

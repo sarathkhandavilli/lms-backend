@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -26,6 +27,12 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     UserRepository userRepository;
     @Autowired
     JwtTokenUtil jwtTokenUtil;
+
+    @Value("${frontend_netlify_url}")
+    String frontendNetlifyUrl;
+
+    @Value("${frontend_local_url}")
+    String frontendLocalUrl;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -77,12 +84,10 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         // Generate JWT
         String token = jwtTokenUtil.generateToken(userDetails);
 
+
         // Redirect to the frontend with required params
-        response.sendRedirect("https://upskillnow.netlify.app/redirect"
-                + "?token=" + token
-                + "&role=" + user.getRole()
-                + "&userId=" + user.getId()
-                + "&firstName=" + user.getFirstName()
-                + "&lastName=" + user.getLastName());
+        String frontendUrl = frontendLocalUrl + "/redirect?token=" + token + "&role=" + user.getRole() + "&userId=" + user.getId() + "&firstName=" + user.getFirstName() + "&lastName=" + user.getLastName();
+        logger.info("Redirecting to frontend = "+frontendUrl);
+        response.sendRedirect(frontendUrl);
     }
 }

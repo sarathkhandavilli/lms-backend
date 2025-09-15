@@ -44,6 +44,9 @@ public class SecurityConfig {
     @Autowired
     ClientRegistrationRepository clientRegistrationRepository;
 
+    @Autowired
+    OAuth2FailureHandler oAuth2FailureHandler;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -125,7 +128,9 @@ public class SecurityConfig {
                         )
                 )
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                .successHandler(oAuth2SuccessHandler));
+                .successHandler(oAuth2SuccessHandler)
+                                .failureHandler(oAuth2FailureHandler)
+                );
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
