@@ -51,7 +51,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         String firstName = oAuth2User.getAttribute("given_name");
         String lastName = oAuth2User.getAttribute("family_name");
 
-        if (firstName == null || lastName == null) {
+        String url = request.getRequestURL().toString();
+        if (url.contains("microsoft")) {
             String name = oAuth2User.getAttribute("name");
             String[] fullName = name.split(" ");
 

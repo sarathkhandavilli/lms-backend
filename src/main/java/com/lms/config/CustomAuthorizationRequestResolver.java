@@ -35,16 +35,14 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
     private OAuth2AuthorizationRequest customize(OAuth2AuthorizationRequest req, HttpServletRequest request) {
         if (req == null) return null;
 
-        // Here you attach your role parameter
-        String role = request.getParameter("role");
-        if (role != null) {
-            Map<String, Object> additionalParams = new HashMap<>(req.getAdditionalParameters());
-            additionalParams.put("role", role);
+        Map<String, Object> additionalParams = new HashMap<>(req.getAdditionalParameters());
 
-            return OAuth2AuthorizationRequest.from(req)
-                    .additionalParameters(additionalParams)
-                    .build();
-        }
-        return req;
+        // Force account chooser
+        additionalParams.put("prompt", "select_account");
+
+        return OAuth2AuthorizationRequest.from(req)
+                .additionalParameters(additionalParams)
+                .build();
     }
+
 }
